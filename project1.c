@@ -84,9 +84,6 @@ etc etc
 // I/O read in data (columns)
 
 // match columns with keys
-void keyMatch() {
-	
-}
 
 // sort ascending values
 int cmpfunc(const void * a, const void * b) {
@@ -94,6 +91,10 @@ int cmpfunc(const void * a, const void * b) {
         return -1;
     return *(const float*)a > *(const float*)b;
 }
+
+/*int structcompare(const void *a, const void *b) {
+	float 
+}*/
 
 /*void sort (column) {
 	void qsort(column, COLUMNLEN, sizeof(float), cmpfunc);
@@ -120,6 +121,11 @@ int main() {
 	FILE *g;
 	input_data(f);
 	input_keys(g);
+
+	/*struct col_key {
+		float col;
+		int key;
+	} col1 = {0.047039, 12135267736472};*/
 
 	float column[] = {0.047039,0.037743,0.051712,0.034644,0.025803,0.024889,0.047446,
 		0.036642,0.034733,0.032763,0.047296,0.049066,0.038966,0.053697,0.040588,0.049608,
