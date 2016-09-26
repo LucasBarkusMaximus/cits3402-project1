@@ -31,7 +31,7 @@ float * input_data(FILE * fp){
    		while( token != NULL ) 
   	 	{
   	 	//testing
-  		printf("%s\n", token);
+  		//printf("%s\n", token);
     	colArray[i] = atof(token);
      	i++;
     	token = strtok(NULL, s);
@@ -39,8 +39,8 @@ float * input_data(FILE * fp){
 	}
 	fclose(fp);
 	//testing
-	int a  = sizeof(colArray) / sizeof(float);
-	printf("%d\n", a);
+	//int a  = sizeof(colArray) / sizeof(float);
+	//printf("%d\n", a);
 	return colArray;
 }
 
@@ -57,7 +57,7 @@ void input_keys(FILE * fp){
 		int i = 0;
    		while( token != NULL ){
    			//testing
-  	 		printf("%s\n", token);
+  	 		//printf("%s\n", token);
     		strcpy(keyArray[i], token);
     		i++;
     		token = strtok(NULL, s);
@@ -65,30 +65,30 @@ void input_keys(FILE * fp){
 	}
 	fclose(fp);
 	//testing
-	int a  = sizeof(keyArray) / sizeof(int);
-	printf("%d\n", a);
+	//int a  = sizeof(keyArray) / sizeof(int);
+	//printf("%d\n", a);
 }
 
 
 
 typedef int (*compfn)(const void*, const void*);
 
-struct animal { float  number;
-                char name[15];
+struct column { float  value;
+                char key[15];
               };
 
 
-struct animal array[COL];
+struct column array[COL];
 
 void printarray(void);
-int  compare(struct animal *, struct animal *);
+int  compare(struct column *, struct column *);
 
-int compare(struct animal *elem1, struct animal *elem2)
+int compare(struct column *elem1, struct column *elem2)
 {
-   if ( elem1->number < elem2->number)
+   if ( elem1->value < elem2->value)
       return -1;
 
-   else if (elem1->number > elem2->number)
+   else if (elem1->value > elem2->value)
       return 1;
 
    else
@@ -100,8 +100,8 @@ void printarray(void)
    int i;
 
    for (i = 0; i < 10; i++)
-      printf("%d:  Number %f is a %s\n",
-               i+1, array[i].number, array[i].name);
+      printf("value %f corresponds to the key: %s\n",
+               array[i].value, array[i].key);
 }
 				
 
@@ -117,15 +117,15 @@ int main() {
 
 	for (int i = 0; i < COL; ++i)
 	{
-		array[i].number = colArr[i];
-		strcpy(array[i].name,keyArray[i]);
+		array[i].value = colArr[i];
+		strcpy(array[i].key,keyArray[i]);
 	}
  printf("List before sorting:\n");
    printarray();
 
    qsort((void *) &array,              // Beginning address of array
-   10,                                 // Number of elements in array
-   sizeof(struct animal),              // Size of eah element
+   10,                                 // value of elements in array
+   sizeof(struct column),              // Size of each element
    (compfn)compare );                  // Pointer to compare function
 
    printf("\nList after sorting:\n");
