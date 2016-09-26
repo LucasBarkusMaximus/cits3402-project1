@@ -77,6 +77,7 @@ struct animal { float  number;
                 char name[15];
               };
 
+
 struct animal array[COL];
 
 void printarray(void);
