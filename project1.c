@@ -93,7 +93,11 @@ int cmpfunc(const void * a, const void * b) {
 }
 
 /*int structcompare(const void *a, const void *b) {
-	float 
+	struct col_key *ia = (struct col_key *)a;
+	struct col_key *ib = (struct col_key *)b;
+	if(*ia < *b)
+		return -1;
+	return *a > *b;
 }*/
 
 /*void sort (column) {
