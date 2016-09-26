@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define DIA 		0.000001
-#define COLUMNLEN	4400
+#define DIA 	0.000001
+#define COL  	4400
 
 /*
 sort single column
@@ -19,6 +19,9 @@ etc etc
 // I/O read in data (columns)
 
 // match columns with keys
+void keyMatch() {
+	
+}
 
 // sort ascending values
 int cmpfunc(const void * a, const void * b) {
@@ -106,14 +109,16 @@ int main() {
 		0.034918,0.028602,0.041941,0.039716,0.04774,0.039132,0.043768,0.050505,0.041322,
 		0.049084,0.038694,0.035052,0.492147};
 
-	for(int i = 0; i< sizeof(column) / sizeof(column[0]); i++) {
+	int columnlen = sizeof(column) / sizeof(column[0]);
+
+	for(int i = 0; i < columnlen; i++) {
 		printf("%f\n", column[i]);
 	}
 	printf("\n");
 
-	qsort(column, sizeof(column) / sizeof(column[0]), sizeof(float), cmpfunc);
+	qsort(column, columnlen, sizeof(float), cmpfunc);
 
-	for(int i = 0; i < sizeof(column) / sizeof(column[0]); i++) {
+	for(int i = 0; i < columnlen; i++) {
 		printf("%f\n", column[i]);
 	}
 	printf("\n");
