@@ -14,10 +14,10 @@
 
 
 //defined outside of functions to avoid warnings, bad practice
-float colArray[COL];
-char keyArray[COL][15];
+double colArray[COL];
+double keyArray[COL];
 
-float * input_data(FILE * fp){
+double * input_data(FILE * fp){
 
 	char str[DATACHARS];
 	fp = fopen("data.txt", "r");
@@ -31,7 +31,7 @@ float * input_data(FILE * fp){
    		while( token != NULL ) 
   	 	{
   	 	//testing
-  		//printf("%s\n", token);
+  		printf("%s\n", token);
     	colArray[i] = atof(token);
      	i++;
     	token = strtok(NULL, s);
@@ -44,21 +44,21 @@ float * input_data(FILE * fp){
 	return colArray;
 }
 
-void input_keys(FILE * fp){
+double * input_key(FILE * fp){
 	char str[KEYCHARS];
 	fp = fopen("keys.txt", "r");
 
 	if(fgets(str, KEYCHARS, fp)!=NULL){
 		//testing
-		printf("%s\n", str);
+		//printf("%s\n", str);
 		const char s[2] = " ";
    		char *token;
 		token = strtok(str, s);
 		int i = 0;
    		while( token != NULL ){
    			//testing
-  	 		//printf("%s\n", token);
-    		strcpy(keyArray[i], token);
+  	 		printf("%s\n", token);
+    		keyArray[i] = (double) atoi(token);
     		i++;
     		token = strtok(NULL, s);
     	}
@@ -67,69 +67,27 @@ void input_keys(FILE * fp){
 	//testing
 	//int a  = sizeof(keyArray) / sizeof(int);
 	//printf("%d\n", a);
+	return keyArray;
 }
 
 
 
-typedef int (*compfn)(const void*, const void*);
-
-struct column { float  value;
-                char key[15];
-              };
-
-
-struct column array[COL];
-
-void printarray(void);
-int  compare(struct column *, struct column *);
-
-int compare(struct column *elem1, struct column *elem2)
-{
-   if ( elem1->value < elem2->value)
-      return -1;
-
-   else if (elem1->value > elem2->value)
-      return 1;
-
-   else
-      return 0;
-}
-
-void printarray(void)
-{
-   int i;
-
-   for (i = 0; i < 10; i++)
-      printf("value %f corresponds to the key: %s\n",
-               array[i].value, array[i].key);
-}
-				
+			
 
 
 int main() {
 	clock_t begin = clock();
+
+	//inputs from text files
 	FILE *f;
 	FILE *g;
-	input_keys(g);
-	float *colArr;
-	unsigned long long int *keyArr;
+	double *colArr;
+	double *keyArr;
+	//an array for values and one for keys
 	colArr = input_data(f);
+	keyArr = input_key(g);
 
-	for (int i = 0; i < COL; ++i)
-	{
-		array[i].value = colArr[i];
-		strcpy(array[i].key,keyArray[i]);
-	}
- printf("List before sorting:\n");
-   printarray();
-
-   qsort((void *) &array,              // Beginning address of array
-   10,                                 // value of elements in array
-   sizeof(struct column),              // Size of each element
-   (compfn)compare );                  // Pointer to compare function
-
-   printf("\nList after sorting:\n");
-   printarray();
+	//TODO: transfer values from arrays to matrix to be sorted
 
 	clock_t end = clock();
 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
