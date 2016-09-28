@@ -1,7 +1,8 @@
 
+#include <sys/time.h>
 #include <omp.h>
+#include <windows.h>
 #include <string.h>
-//#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -14,7 +15,8 @@
 
 
 //defined outside of functions to avoid warnings, bad practice
-double col_keyArray[COL][2];
+double colArray[COL];
+double keyArray[COL];
 
 double * input_data(FILE * fp){
 
@@ -31,7 +33,7 @@ double * input_data(FILE * fp){
   	 	{
   	 	//testing
   		printf("%s\n", token);
-    	col_keyArray[i][0] = atof(token);
+    	colArray[i] = atof(token);
      	i++;
     	token = strtok(NULL, s);
    		}
@@ -40,7 +42,7 @@ double * input_data(FILE * fp){
 	//testing
 	//int a  = sizeof(colArray) / sizeof(float);
 	//printf("%d\n", a);
-	return col_keyArray;
+	return colArray;
 }
 
 double * input_key(FILE * fp){
@@ -57,7 +59,7 @@ double * input_key(FILE * fp){
    		while( token != NULL ){
    			//testing
   	 		printf("%s\n", token);
-    		keyArray[i][1] = (double) atoi(token);
+    		keyArray[i] = (double) atoi(token);
     		i++;
     		token = strtok(NULL, s);
     	}
@@ -66,9 +68,16 @@ double * input_key(FILE * fp){
 	//testing
 	//int a  = sizeof(keyArray) / sizeof(int);
 	//printf("%d\n", a);7
-	return col_keyArray;
+	return keyArray;
 }
 
+int compare(const void *a, const void *b) {
+   double x1 = *(const double*)a;
+   double x2 = *(const double*)b;
+   if (x1 > x2) return  1;
+   if (x1 < x2) return -1;
+   return 0;
+}	
 
 generate_neighborhood(){
 	//neighborhood[Suburb][street]
@@ -85,7 +94,8 @@ generate_neighborhood(){
 
 
 int main() {
-	clock_t begin = clock();
+ 	struct timeval start, end;
+ 	gettimeofday(&start, NULL);
 
 	//inputs from text files
 	FILE *f;
@@ -97,11 +107,25 @@ int main() {
 	keyArr = input_key(g);
 
 	//TODO: transfer values from arrays to matrix to be sorted
+	double col_key[4][2] = {{0.047039, 12135267736472}, {0.037743, 99115488405427}, 
+		{0.051712, 30408863181157}, {0.034644, 27151991364761}};
+   
+	printf("OG: \n");
+    for(int i = 0; i < 4; i++) {
+    	printf("(%f, %f) \n", col_key[i][0], col_key[i][1]);
+    }
 
-	clock_t end = clock();
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    qsort(col_key, 4, sizeof(*col_key), compare);
 
-	printf("%d seconds", time_spent);
+    printf("Sorted: \n");
+    for (int i = 0; i < 4; i++) {
+    	printf("(%f, %f) \n", col_key[i][0], col_key[i][1]);
+    }
+	gettimeofday(&end, NULL);
+  	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
+  		 end.tv_usec - start.tv_usec) / 1.e6;
+
+  	printf("time = %12.10f seconds\n",delta);
 
 	return 0;
 }
