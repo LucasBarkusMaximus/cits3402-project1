@@ -14,11 +14,10 @@
 #define DATACHARS 45000
 
 
-//defined outside of functions to avoid warnings, bad practice
-double colArray[COL][2];
 
 
-void input_data(FILE * fp,double colArray[COL][2]){
+
+void input_data(FILE * fp,double arr[COL][2]){
 
 	char str[DATACHARS];
 	fp = fopen("data.txt", "r");
@@ -33,7 +32,9 @@ void input_data(FILE * fp,double colArray[COL][2]){
   	 	{
   	 	//testing
   		printf("%s\n", token);
-    	colArray[i][0] = atof(token);
+  		 printf("prefloat:%lf\n", atof(token));
+    	arr[i][0] = atof(token);
+    	printf("float:%lf\n", arr[i][0]);
      	i++;
     	token = strtok(NULL, s);
    		}
@@ -44,7 +45,7 @@ void input_data(FILE * fp,double colArray[COL][2]){
 	//printf("%d\n", a);
 }
 
-void input_key(FILE * fp,double colArray[COL][2]){
+void input_key(FILE * fp,double arr[COL][2]){
 	char str[KEYCHARS];
 	fp = fopen("keys.txt", "r");
 
@@ -57,8 +58,10 @@ void input_key(FILE * fp,double colArray[COL][2]){
 		int i = 0;
    		while( token != NULL ){
    			//testing
-  	 		printf("%s\n", token);
-    		colArray[i][1] = (double) atoi(token);
+  	 		//printf("%s\n", token);
+    		arr[i][1] = atof(token);
+    		//sscanf(token, "%lf", colArray[i][1]);
+    		//printf("float:%lf\n", arr[i][1]);
     		i++;
     		token = strtok(NULL, s);
     	}
@@ -68,7 +71,7 @@ void input_key(FILE * fp,double colArray[COL][2]){
 	//int a  = sizeof(keyArray) / sizeof(int);
 	//printf("%d\n", a);7
 }
-
+/*
 int compare(const void *a, const void *b) {
    double x1 = *(const double*)a;
    double x2 = *(const double*)b;
@@ -76,13 +79,13 @@ int compare(const void *a, const void *b) {
    if (x1 < x2) return -1;
    return 0;
 }	
-
+*/
 
 /*
 generate_neighborhood(){
-=======
+
 /*generate_neighborhood(){
->>>>>>> bdff6f3a2ea0c6f85f66bdff72d7295ffd11cfd6
+
 	//neighborhood[Suburb][street]
 	int neighbourhood[1000][100];
 	neighbourhood[0][0] = colArray[0];
@@ -92,26 +95,27 @@ generate_neighborhood(){
 			neighbourhood[i][j] = colArray[i+j]
 			j++
 		}
-<<<<<<< HEAD
+
 }
 */		
 
 
 
 //place your john hancock here pls sir
-//change array[4][2] to array [COL][2]			
+//change array[4][2] to array [COL][2]
+/*			
 double signature(double array[4][2]) {
 	double sig;
 	//4 is arbitrary, change to array size
 	for(int i = 0; i < 4; i++) {
 		sig += array[i][1];
 	}
->>>>>>> bdff6f3a2ea0c6f85f66bdff72d7295ffd11cfd6
+
 
     printf("%f\n", sig);
 	return sig;
 }
-
+*/
 int main() {
  	struct timeval start, end;
  	gettimeofday(&start, NULL);
@@ -120,21 +124,23 @@ int main() {
 	//inputs from text files
 	FILE *f;
 	FILE *g;
-	double** colArr;
-	//an array for values and one for keys
+	double colArray[COL][2];	//an array for values and one for keys
 	input_data(f,colArray);
 	input_key(g,colArray);
+	printf("%lf\n", colArray[0][0]);
+	printf("%lf\n", colArray[1][1]);
 
 	//TODO: transfer values from arrays to matrix to be sorted
 	
 	//double col_key[4][2] = {{0.047039, 12135267736472}, {0.037743, 99115488405427}, 
 	//	{0.051712, 30408863181157}, {0.034644, 27151991364761}};
-   /*
+   
 	printf("OG: \n");
     for(int i = 0; i < 4; i++) {
-    	printf("(%f, %f) \n", colArr[i][0], colArr[i][1]);
+    	printf("(%f, %f) \n", colArray[i][0], colArray[i][1]);
     }
 
+    /*
     qsort(colArr, 4, sizeof(*colArr), compare);
 
     printf("Sorted: \n");
@@ -144,7 +150,7 @@ int main() {
 
     */
 
-    signature(col_key);
+    //signature(col_key);
 
 
 	gettimeofday(&end, NULL);
