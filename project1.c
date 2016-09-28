@@ -1,7 +1,7 @@
-
+#include <sys/time.h>
 #include <omp.h>
 #include <string.h>
-//#include <omp.h>
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -70,13 +70,18 @@ double * input_key(FILE * fp){
 	return keyArray;
 }
 
-
-
-			
+int compare(const void *a, const void *b) {
+   double x1 = *(const double*)a;
+   double x2 = *(const double*)b;
+   if (x1 > x2) return  1;
+   if (x1 < x2) return -1;
+   return 0;
+}		
 
 
 int main() {
-	clock_t begin = clock();
+ 	struct timeval start, end;
+ 	gettimeofday(&start, NULL);
 
 	//inputs from text files
 	FILE *f;
@@ -88,11 +93,26 @@ int main() {
 	keyArr = input_key(g);
 
 	//TODO: transfer values from arrays to matrix to be sorted
+	double col_key[4][2] = {{0.047039, 12135267736472}, {0.037743, 99115488405427}, 
+		{0.051712, 30408863181157}, {0.034644, 27151991364761}};
+   
+	printf("OG: \n");
+    for(int i = 0; i < 4; i++) {
+    	printf("(%f, %f) \n", col_key[i][0], col_key[i][1]);
+    }
 
-	clock_t end = clock();
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    qsort(col_key, 4, sizeof(*col_key), compare);
 
-	printf("%d seconds", time_spent);
+    printf("Sorted: \n");
+    for (int i = 0; i < 4; i++) {
+    	printf("(%f, %f) \n", col_key[i][0], col_key[i][1]);
+    }
+
+	gettimeofday(&end, NULL);
+  	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
+  		 end.tv_usec - start.tv_usec) / 1.e6;
+
+  	printf("time = %12.10f seconds\n",delta);
 
 	return 0;
 }
