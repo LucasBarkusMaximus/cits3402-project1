@@ -77,8 +77,12 @@ int compare(const void *a, const void *b) {
    return 0;
 }	
 
+
 /*
 generate_neighborhood(){
+=======
+/*generate_neighborhood(){
+>>>>>>> bdff6f3a2ea0c6f85f66bdff72d7295ffd11cfd6
 	//neighborhood[Suburb][street]
 	int neighbourhood[1000][100];
 	neighbourhood[0][0] = colArray[0];
@@ -88,9 +92,25 @@ generate_neighborhood(){
 			neighbourhood[i][j] = colArray[i+j]
 			j++
 		}
+<<<<<<< HEAD
 }
 */		
 
+
+
+//place your john hancock here pls sir
+//change array[4][2] to array [COL][2]			
+double signature(double array[4][2]) {
+	double sig;
+	//4 is arbitrary, change to array size
+	for(int i = 0; i < 4; i++) {
+		sig += array[i][1];
+	}
+>>>>>>> bdff6f3a2ea0c6f85f66bdff72d7295ffd11cfd6
+
+    printf("%f\n", sig);
+	return sig;
+}
 
 int main() {
  	struct timeval start, end;
@@ -121,7 +141,12 @@ int main() {
     for (int i = 0; i < 4; i++) {
     	printf("(%f, %f) \n", colArr[i][0], colArr[i][1]);
     }
+
     */
+
+    signature(col_key);
+
+
 	gettimeofday(&end, NULL);
   	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
   		 end.tv_usec - start.tv_usec) / 1.e6;
