@@ -15,10 +15,10 @@
 
 
 //defined outside of functions to avoid warnings, bad practice
-double colArray[COL];
-double keyArray[COL];
+double colArray[COL][2];
 
-double * input_data(FILE * fp){
+
+void input_data(FILE * fp,double colArray[COL][2]){
 
 	char str[DATACHARS];
 	fp = fopen("data.txt", "r");
@@ -33,7 +33,7 @@ double * input_data(FILE * fp){
   	 	{
   	 	//testing
   		printf("%s\n", token);
-    	colArray[i] = atof(token);
+    	colArray[i][0] = atof(token);
      	i++;
     	token = strtok(NULL, s);
    		}
@@ -42,10 +42,9 @@ double * input_data(FILE * fp){
 	//testing
 	//int a  = sizeof(colArray) / sizeof(float);
 	//printf("%d\n", a);
-	return colArray;
 }
 
-double * input_key(FILE * fp){
+void input_key(FILE * fp,double colArray[COL][2]){
 	char str[KEYCHARS];
 	fp = fopen("keys.txt", "r");
 
@@ -59,7 +58,7 @@ double * input_key(FILE * fp){
    		while( token != NULL ){
    			//testing
   	 		printf("%s\n", token);
-    		keyArray[i] = (double) atoi(token);
+    		colArray[i][1] = (double) atoi(token);
     		i++;
     		token = strtok(NULL, s);
     	}
@@ -68,7 +67,6 @@ double * input_key(FILE * fp){
 	//testing
 	//int a  = sizeof(keyArray) / sizeof(int);
 	//printf("%d\n", a);7
-	return keyArray;
 }
 
 int compare(const void *a, const void *b) {
@@ -79,6 +77,7 @@ int compare(const void *a, const void *b) {
    return 0;
 }	
 
+/*
 generate_neighborhood(){
 	//neighborhood[Suburb][street]
 	int neighbourhood[1000][100];
@@ -90,37 +89,39 @@ generate_neighborhood(){
 			j++
 		}
 }
-			
+*/		
 
 
 int main() {
  	struct timeval start, end;
  	gettimeofday(&start, NULL);
 
+ 	
 	//inputs from text files
 	FILE *f;
 	FILE *g;
-	double *colArr;
-	double *keyArr;
+	double** colArr;
 	//an array for values and one for keys
-	colArr = input_data(f);
-	keyArr = input_key(g);
+	input_data(f,colArray);
+	input_key(g,colArray);
 
 	//TODO: transfer values from arrays to matrix to be sorted
-	double col_key[4][2] = {{0.047039, 12135267736472}, {0.037743, 99115488405427}, 
-		{0.051712, 30408863181157}, {0.034644, 27151991364761}};
-   
+	
+	//double col_key[4][2] = {{0.047039, 12135267736472}, {0.037743, 99115488405427}, 
+	//	{0.051712, 30408863181157}, {0.034644, 27151991364761}};
+   /*
 	printf("OG: \n");
     for(int i = 0; i < 4; i++) {
-    	printf("(%f, %f) \n", col_key[i][0], col_key[i][1]);
+    	printf("(%f, %f) \n", colArr[i][0], colArr[i][1]);
     }
 
-    qsort(col_key, 4, sizeof(*col_key), compare);
+    qsort(colArr, 4, sizeof(*colArr), compare);
 
     printf("Sorted: \n");
     for (int i = 0; i < 4; i++) {
-    	printf("(%f, %f) \n", col_key[i][0], col_key[i][1]);
+    	printf("(%f, %f) \n", colArr[i][0], colArr[i][1]);
     }
+    */
 	gettimeofday(&end, NULL);
   	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
   		 end.tv_usec - start.tv_usec) / 1.e6;
