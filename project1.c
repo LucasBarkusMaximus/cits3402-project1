@@ -14,8 +14,7 @@
 
 
 //defined outside of functions to avoid warnings, bad practice
-double colArray[COL];
-double keyArray[COL];
+double col_keyArray[COL][2];
 
 double * input_data(FILE * fp){
 
@@ -32,7 +31,7 @@ double * input_data(FILE * fp){
   	 	{
   	 	//testing
   		printf("%s\n", token);
-    	colArray[i] = atof(token);
+    	col_keyArray[i][0] = atof(token);
      	i++;
     	token = strtok(NULL, s);
    		}
@@ -41,7 +40,7 @@ double * input_data(FILE * fp){
 	//testing
 	//int a  = sizeof(colArray) / sizeof(float);
 	//printf("%d\n", a);
-	return colArray;
+	return col_keyArray;
 }
 
 double * input_key(FILE * fp){
@@ -58,7 +57,7 @@ double * input_key(FILE * fp){
    		while( token != NULL ){
    			//testing
   	 		printf("%s\n", token);
-    		keyArray[i] = (double) atoi(token);
+    		keyArray[i][1] = (double) atoi(token);
     		i++;
     		token = strtok(NULL, s);
     	}
@@ -66,8 +65,8 @@ double * input_key(FILE * fp){
 	fclose(fp);
 	//testing
 	//int a  = sizeof(keyArray) / sizeof(int);
-	//printf("%d\n", a);
-	return keyArray;
+	//printf("%d\n", a);7
+	return col_keyArray;
 }
 
 
