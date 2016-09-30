@@ -14,7 +14,8 @@
 #define DATACHARS 45000
 #define BLOCKSIZE 4
 
-
+//keep track of amount of block signatures, think it needs to be global
+int sigIndexNum = 0;
 
 
 void input_data(FILE * fp,float arr[COL][2], int colNumber){
@@ -138,24 +139,44 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 	}
 
 }
-	
 
+int block(/*int sigIndexNum (as global) */, int arr[4][2], int colID) {
+	//create matrix for single block
+	int blockinfo[1][6];
+	//find index of next signature
+	sigIndexNum += 1;
+	//fill with index of signature
+	blockinfo[0][0] = sigIndexNum;
 
+	//fill rowIDs
+	//change i < 4 to arraysize
+	for(int i = 0; i < 4; i++) {
+		blockinfo[0][i + 1] = arr[i][1];
+	}
+
+	//add columnID to end of block
+	blockinfo[0][5] = colID;
+
+	return blockinfo;
+}
 
 //place your john hancock here pls sir
-//change array[4][2] to array [COL][2]
-		
-double signature(double array[4][2]) {
-	double sig;
+double signature(int arr[4][2]) {
+	double sig[1][2];
 	//4 is arbitrary, change to array size
 	for(int i = 0; i < 4; i++) {
 		sig += array[i][1];
 	}
 
-
     printf("%f\n", sig);
 	return sig;
 }
+
+//see if sigs collide
+double collisionCheck(double sigArray) {
+
+}
+
 
 int main() {
  	struct timeval start, end;
@@ -165,6 +186,7 @@ int main() {
 	//inputs from text files
 	FILE *f;
 	FILE *g;
+	
 	//array for storing a hood
 	size_t neighbourhoodNumber = 1000;
 	size_t neighbourhoodSize = 100;
@@ -172,6 +194,12 @@ int main() {
 	double neighbArray[neighbourhoodNumber][neighbourhoodSize];
 	//array for storing keys
 	double keyArray[COL];
+	//array for storing signatures
+	//make 1000 better num
+	double sigArray[1000][2];
+	//collision array
+	double collisionArray;
+	
 	//get the first column
 	input_data(f,colArray,0)
 	//get the keys
@@ -190,9 +218,16 @@ int main() {
     	printf("(%f, %f) \n", colArray[i][0], colArray[i][1]);
     }
     //generate all hoods for this column
-     generate_neighborhood(1000,100, colArray, neighbArray, keyArray);
+    generate_neighborhood(1000,100, colArray, neighbArray, keyArray);
 
-    //signature(col_key);
+    //fill signature array with values
+    sigArray[sigIndexNum][0] = signature();
+    sigArray[sigIndexNum][1] = sigIndexNum;
+
+    //check signatures for collision
+
+    //after column finishes, sort sigArray
+    qsort(sigArray, );
 
 
 	gettimeofday(&end, NULL);
