@@ -17,6 +17,7 @@
 #define NEIGHBOURHOODNUMBER 1000
 #define NEIGHBOURHOODSIZE 100
 #define BLOCKARRAYSIZE 1000
+#define COLLISIONARRAYSIZE 1000
 
 
 
@@ -386,31 +387,31 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
       generate_blockArray(bArray,neighbArray,rowArray);
 }
 
-double collisions() {
+void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE]){
 	int collisionTicker = 0;
-	double collisions[5][5] = {0};
 
-	for(int i = 0; i < 5; i++) {
-		double a = matrix1[i][0];
-		for(int j = 0; j < 5; j++) {
-			if(a < matrix2[j][0]) {
-				break;
-			}
+	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
 
-			if(a == matrix2[j][0]) {
-				collisions[collisionTicker][0] = matrix1[i][0];
+		double a = aArr[i][0];
+    //if(a==0){break;}
+
+		for(int j = BLOCKARRAYSIZE-1; j >= 0; j--) {
+			//if(a < bArr[j][0]) {break;}
+
+			if(a == bArr[j][0]) {
+				collisions[collisionTicker][0] = aArr[i][0];
 				collisionTicker++;
 			}
 		}
 	}
 
 	for(int k = 0; k < collisionTicker; k++) {
-		printf("%f\n", collisions[k][0]);
+		printf("collisions: %f\n", collisions[k][0]);
 
 		k++;
 	}
 
-	return collisions;
+
 }
 
 int main() {
@@ -419,7 +420,7 @@ int main() {
 
   //array for storing a hood
   
- 	
+ 	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
   //array for storing keys
   double keyArray[COL];
   //get the keys
@@ -437,7 +438,7 @@ int main() {
     }
     for(int j = ROW-1;j>i;j--){
       parse_data(checkBlockArray,j,keyArray);
-	       //insert call here
+	    collisions(firstBlockArray,checkBlockArray,collisionArray);
       }
 }
      
