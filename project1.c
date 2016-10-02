@@ -386,6 +386,33 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
       generate_blockArray(bArray,neighbArray,rowArray);
 }
 
+double collisions() {
+	int collisionTicker = 0;
+	double collisions[5][5] = {0};
+
+	for(int i = 0; i < 5; i++) {
+		double a = matrix1[i][0];
+		for(int j = 0; j < 5; j++) {
+			if(a < matrix2[j][0]) {
+				break;
+			}
+
+			if(a == matrix2[j][0]) {
+				collisions[collisionTicker][0] = matrix1[i][0];
+				collisionTicker++;
+			}
+		}
+	}
+
+	for(int k = 0; k < collisionTicker; k++) {
+		printf("%f\n", collisions[k][0]);
+
+		k++;
+	}
+
+	return collisions;
+}
+
 int main() {
  	struct timeval start, end;
  	gettimeofday(&start, NULL);
@@ -398,7 +425,6 @@ int main() {
   //get the keys
   input_key(keyArray);
 	//inputs from text files
-	double collisionArray[5000][5];
  double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
  double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
   for(int i = 0;i<ROW;i++){
