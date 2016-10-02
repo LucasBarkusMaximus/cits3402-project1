@@ -10,18 +10,24 @@
 
 #define DIA 0.000001
 #define COL 4400
+#define ROW 5
 #define KEYCHARS 70000
 #define DATACHARS 45000
 #define BLOCKSIZE 4
+#define NEIGHBOURHOODNUMBER 1000
+#define NEIGHBOURHOODSIZE 100
+#define BLOCKARRAYSIZE 1000
 
 
 
 
-void input_data(FILE * fp,float arr[COL][2], int colNumber){
+
+void input_data(float arr[COL][2], int colNumber){
+  FILE *f;
 	int j = 0;
 	char str[DATACHARS];
-	fp = fopen("data.txt", "r");
-	while(fgets(str, DATACHARS, fp)!=NULL){
+	f = fopen("data.txt", "r");
+	while(fgets(str, DATACHARS, f)!=NULL){
 		//testing
 		//printf("%s\n", str);
 		const char s[2] = ",";
@@ -44,17 +50,18 @@ void input_data(FILE * fp,float arr[COL][2], int colNumber){
     	token = strtok(NULL, s);
    		}
 	}
-	fclose(fp);
+	fclose(f);
 	//testing
 	//int a  = sizeof(colArray) / sizeof(float);
 	//printf("%d\n", a);
 }
 
-void input_key(FILE * fp,double arr[COL]){
+void input_key(double arr[COL]){
+  FILE *f;
 	char str[KEYCHARS];
-	fp = fopen("keys.txt", "r");
+	f = fopen("keys.txt", "r");
 
-	if(fgets(str, KEYCHARS, fp)!=NULL){
+	if(fgets(str, KEYCHARS, f)!=NULL){
 		//testing
 		//printf("%s\n", str);
 		const char s[2] = " ";
@@ -71,7 +78,7 @@ void input_key(FILE * fp,double arr[COL]){
     		token = strtok(NULL, s);
     	}
 	}
-	fclose(fp);
+	fclose(f);
 	//testing
 	//int a  = sizeof(keyArray) / sizeof(int);
 	//printf("%d\n", a);7
@@ -146,13 +153,21 @@ int m, n, *p;
     p[1] = 1;
   }
 
-int compare(const void *a, const void *b) {
+int compareFloat(const void *a, const void *b) {
    float x1 = *(const float*)a;
    float x2 = *(const float*)b;
    if (x1 > x2) return  1;
    if (x1 < x2) return -1;
    return 0;
 }	
+
+int compareDouble(const void *a, const void *b) {
+   double x1 = *(const double*)a;
+   double x2 = *(const double*)b;
+   if (x1 > x2) return  1;
+   if (x1 < x2) return -1;
+   return 0;
+} 
 
 
 double findKey(int loc, double kyArr[COL]){
@@ -222,18 +237,27 @@ unsigned long long int fac(unsigned long long int n ){
         return 1;
 }
 
-void generate_blocks(size_t N,size_t t, double a[N][2], double c[t][BLOCKSIZE*2]){
+void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLOCKSIZE+1]){
 	printf("%s\n","generating blocks" );
 	//elements in a block
 	int M = BLOCKSIZE;
 	//block index
-	int combination = 0; 
+	int combination = 1; 
+  double signature;
 	int j = 1;
     int i, x, y, z, p[N+2], b[N];
+    double c[BLOCKSIZE*2];
     //Generate the first block (rightmost)
-    for(int k = 0;k<M;k++){c[0][k]=a[N-M+k][0];}
-    for(int k = 0;k<M;k++){c[0][M+k]=a[N-M+k][1];}
-    for(int k = 0;k<M;k++){printf("key:%16.0lf row:%4.0lf\n", c[combination][k],c[combination][M+k]);}
+    for(int k = 0;k<M;k++){c[k]=a[N-M+k][0];}
+    for(int k = 0;k<M;k++){c[M+k]=a[N-M+k][1];}
+    //for(int k = 0;k<M;k++){printf("key:%16.0lf row:%4.0lf\n", c[k],c[BLOCKSIZE+k]);}
+       signature = 0;
+        for(i = 0; i<BLOCKSIZE;i++){
+            signature += c[i];
+            blockArray[0][1+i] = c[BLOCKSIZE+i];
+         }
+         blockArray[0][0] = signature;
+    for(int k = 0;k<M;k++){printf("sig:%16.0lf row:%4.0lf\n", blockArray[0][0],blockArray[0][1+k]);}
    	//only one combination required? then return
     if(N==1){return;}
 	//generate other combinations
@@ -255,99 +279,142 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double c[t][BLOCKSIZE*2]
       	putchar(b[i]? '1': '0');
    		putchar('\n');
    		
-   		for(int k = 0;k<M;k++){printf("key:%8.8lf row:%8.8lf\n", c[combination][k],c[combination][M+k]);}
    		
+   		printf("combo: %d\n", combination);
    		//write keys to block array
-   		c[combination][z] = a[x][0];
+   		c[z] = a[x][0];
+      c[BLOCKSIZE+z] = a[x][1];
    		//write rowIDs to block array
-   		c[combination][M+z] = a[x][1];
+   		//c[M+z] = a[x][1];
+        //for(int k = 0;k<M;k++){printf("key:%8.8lf row:%8.8lf\n", c[k],c[BLOCKSIZE+k]);}
+        signature = 0;
+        for(i = 0; i<BLOCKSIZE;i++){
+            signature += c[i];
+            blockArray[combination][1+i] = c[BLOCKSIZE+i];
+         }
+         blockArray[combination][0] = signature;
+          for(int k = 0;k<M;k++){printf("sig:%8.8lf row:%8.8lf\n", blockArray[combination][0],blockArray[combination][1+k]);}
    		//write to the next block if that is where this belongs
-   		if(j%(M) == 0){combination++;}
-   		j++;
+   		combination++;
+   		
    		
    		
     }
 	
 }
 
-//place your john hancock here pls sir
-//change array[4][2] to array [COL][2]
-		
-double signature(double array[4][2]) {
-	double sig;
-	//4 is arbitrary, change to array size
-	for(int i = 0; i < 4; i++) {
-		sig += array[i][1];
-	}
 
+void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE], double rArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE]){
+     int i = 0;
+     int block = 0;
+     //find blocks in the next hood if there are any hoods left
+     while(nArray[i][0]!= 0){
+      printf("hood: %d\n", i);
+      int j = 0;
+      //check how big this hood is
+      while(nArray[i][j]!=0){j++;}
+      //if bad neighboorhood (last neighboorhood and size less than 3) ignore it
+      if(j<BLOCKSIZE){break;}
+      printf("hood size: %d\n", j);
+      //extract key and column in and put into smaller array
+      double a[j][2];
+      for(int k = 0; k < (j); k++){
+        a[k][0] = nArray[i][k];
+        a[k][1] = rArray[i][k];
+        }
+      //check number of blocks possible
+      unsigned long long int t = fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
+      printf("combinations: %d\n", t );
+      //create array that blocks will be stored in. Format: everything doubles [sig,row1,row2,row3,row4]x number of blocks
+      double c[t][BLOCKSIZE+1];
+      //generate
+      generate_blocks((j),t, a,c);
 
-    printf("%f\n", sig);
-	return sig;
+       for (int k = 0; k < t; k++) {
+        for(int l = 0;l<(1+BLOCKSIZE);l++){
+           bArray[block][l] = c[k][l];
+           block++;
+          }
+        }
+      i++;
+     }
+
+      qsort(bArray, 1000, sizeof(*bArray), compareDouble);
+      for (int i = 0; i < 1000; ++i){
+         printf("(%lf) \n", bArray[i][0]);
+      }
+}
+
+void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double keyArray[COL]){
+  float colArray[COL][2]; //an array for values and one for keys
+  //get the first column SET COLUMN HERE (change to automated after testing)
+  input_data(colArray,column);
+  
+  double neighbArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE];
+  double rowArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE];
+  
+  /*
+  printf("OG: \n");
+    for(int i = 0; i < COL; i++) {
+      printf("(%f, %f) \n", colArray[i][0], colArray[i][1]);
+    }
+*/
+    //sort the column
+    qsort(colArray, COL, sizeof(*colArray), compareFloat);
+
+   /*
+    printf("Sorted: \n");
+    for (int i = 0; i < COL; i++) {
+      printf("(%f, %f) \n", colArray[i][0], colArray[i][1]);
+    }
+   */
+
+    //generate all hoods for this column
+     generate_neighborhood(NEIGHBOURHOODNUMBER,NEIGHBOURHOODSIZE, colArray, neighbArray, keyArray, rowArray);
+    /*
+     while(neighbArray[i][0]!= 0){
+      int j = 0;
+      while(neighbArray[i][j]!=0){j++;}
+        if(j<BLOCKSIZE){break;}
+        comb += fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
+        printf("%d\n", comb);
+      i++;
+     }
+     blockArray[comb][1+BLOCKSIZE];
+     i = 0;
+*/
+      generate_blockArray(bArray,neighbArray,rowArray);
 }
 
 int main() {
  	struct timeval start, end;
  	gettimeofday(&start, NULL);
 
+  //array for storing a hood
+  
  	
+  //array for storing keys
+  double keyArray[COL];
+  //get the keys
+  input_key(keyArray);
 	//inputs from text files
-	FILE *f;
-	FILE *g;
-	//array for storing a hood
-	size_t neighbourhoodNumber = 1000;
-	size_t neighbourhoodSize = 100;
-	float colArray[COL][2];	//an array for values and one for keys
-	double neighbArray[neighbourhoodNumber][neighbourhoodSize];
-	double rowArray[neighbourhoodNumber][neighbourhoodSize];
-	//array for storing keys
-	double keyArray[COL];
-	//get the first column SET COLUMN HERE (change to automated after testing)
-	input_data(f,colArray,400);
-	//get the keys
-	input_key(g,keyArray);
-	
-	printf("OG: \n");
-    for(int i = 0; i < COL; i++) {
-    	printf("(%f, %f) \n", colArray[i][0], colArray[i][1]);
+	double collisionArray[5000][5];
+ double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
+ double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
+  for(int i = 0;i<ROW;i++){
+    if(i!=0){
+      for(int j =0;j<BLOCKARRAYSIZE;j++){
+        for(int k = 0;k<BLOCKSIZE+1;k++) firstBlockArray[j][k] = checkBlockArray[j][k];
+      }
+    }else{
+      parse_data(firstBlockArray,0, keyArray);
     }
-
-    //sort the column
-    qsort(colArray, COL, sizeof(*colArray), compare);
-   
-    printf("Sorted: \n");
-    for (int i = 0; i < COL; i++) {
-    	printf("(%f, %f) \n", colArray[i][0], colArray[i][1]);
-    }
-    //generate all hoods for this column
-     generate_neighborhood(1000,100, colArray, neighbArray, keyArray, rowArray);
-     int i = 0;
-     //find blocks in the next hood if there are any hoods left
-     while(neighbArray[i][0]!= 0){
-     	printf("hood: %d\n", i);
-     	int j = 0;
-     	int k = 0;
-     	//check how big this hood is
-     	while(neighbArray[i][j]!=0){j++;}
-     	//if bad neighboorhood (last neighboorhood and size less than 3) ignore it
-     	if(j<BLOCKSIZE){break;}
-     	printf("hood size: %d\n", j);
-     	//extract key and column in and put into smaller array
-     	double a[j][2];
-     	for(k = 0; k < (j); k++){
-     		a[k][0] = neighbArray[i][k];
-     		a[k][1] = rowArray[i][k];
-     		}
-     	//check number of blocks possible
-     	unsigned long long int t = fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
-     	printf("combinations: %d\n", t );
-     	//create array that blocks will be stored in. Format: everything doubles [key1,key2,key3,key4,row1,row2,row3,row4]x number of blocks
-     	double c[t][BLOCKSIZE*2];
-     	//generate
-     	generate_blocks((j),t, a,c);
-    
-     	i++;
-     }
-    
+    for(int j = ROW-1;j>i;j--){
+      parse_data(checkBlockArray,j,keyArray);
+	       //insert call here
+      }
+}
+     
     //signature(col_key);
 
 
