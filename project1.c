@@ -391,12 +391,16 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 	int collisionTicker = 0;
 
 	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
-
 		double a = aArr[i][0];
-    //if(a==0){break;}
+    	
+    	if(a == 0) {
+    		break;
+    	}
 
 		for(int j = BLOCKARRAYSIZE-1; j >= 0; j--) {
-			//if(a < bArr[j][0]) {break;}
+			if(a > bArr[j][0]) {
+				break;
+			}
 
 			if(a == bArr[j][0]) {
 				collisions[collisionTicker][0] = aArr[i][0];
