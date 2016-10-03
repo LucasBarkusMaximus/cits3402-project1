@@ -10,7 +10,7 @@
 
 #define DIA 0.000001
 #define COL 4400
-#define ROW 5
+#define ROW 2
 #define KEYCHARS 70000
 #define DATACHARS 45000
 #define BLOCKSIZE 4
@@ -172,7 +172,7 @@ int compareDouble(const void *a, const void *b) {
 
 
 double findKey(int loc, double kyArr[COL]){
-return kyArr[loc];
+	return kyArr[loc];
 }
 
 
@@ -203,7 +203,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 		//if the new element is within dist, add it to the hood and check the next one etc.
 		while(dist<=DIA){
 			double key = findKey(cArr[j][1], kyArr);
-			printf("row: %d Val:%f \n",j,cArr[j][0]);
+			//printf("row: %d Val:%f \n",j,cArr[j][0]);
 			nArr[neighbourhood][j-i] = key;
 			rArr[neighbourhood][j-i] = cArr[j][1];
 			j++;
@@ -211,7 +211,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			dist  = (cArr[j][0]-cArr[i][0]);
 			//printf("dist:%+8.8f(l)\n", dist);
 			}else{
-				printf("rip\n");
+				//printf("rip\n");
 				break;
 			}
 		}
@@ -220,9 +220,9 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 		//if this hood is too small to contain blocks, recycle its index in the array
 		if(!nArr[neighbourhood][BLOCKSIZE-1] == 0){
 			neighbourhood++;
-			printf("good neighbourhood\n");
+			//printf("good neighbourhood\n");
 			for(int k=i;k<j;k++){
-			printf("row: %d Val:%lf \n",k,cArr[k][0]);
+			//printf("row: %d Val:%lf \n",k,cArr[k][0]);
 		}
 		}
 		
@@ -244,7 +244,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
 	int M = BLOCKSIZE;
 	//block index
 	int combination = 1; 
-  double signature;
+  	double signature;
 	int j = 1;
     int i, x, y, z, p[N+2], b[N];
     double c[BLOCKSIZE*2];
@@ -258,7 +258,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
             blockArray[0][1+i] = c[BLOCKSIZE+i];
          }
          blockArray[0][0] = signature;
-    for(int k = 0;k<M;k++){printf("sig:%16.0lf row:%4.0lf\n", blockArray[0][0],blockArray[0][1+k]);}
+    //for(int k = 0;k<M;k++){printf("sig:%16.0lf row:%4.0lf\n", blockArray[0][0],blockArray[0][1+k]);}
    	//only one combination required? then return
     if(N==1){return;}
 	//generate other combinations
@@ -281,7 +281,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
    		putchar('\n');
    		
    		
-   		printf("combo: %d\n", combination);
+   		//printf("combo: %d\n", combination);
    		//write keys to block array
    		c[z] = a[x][0];
       c[BLOCKSIZE+z] = a[x][1];
@@ -294,7 +294,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
             blockArray[combination][1+i] = c[BLOCKSIZE+i];
          }
          blockArray[combination][0] = signature;
-          for(int k = 0;k<M;k++){printf("sig:%8.8lf row:%8.8lf\n", blockArray[combination][0],blockArray[combination][1+k]);}
+          //for(int k = 0;k<M;k++){printf("sig:%8.8lf row:%8.8lf\n", blockArray[combination][0],blockArray[combination][1+k]);}
    		//write to the next block if that is where this belongs
    		combination++;
    		
@@ -342,7 +342,7 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 
       qsort(bArray, 1000, sizeof(*bArray), compareDouble);
       for (int i = 0; i < 1000; ++i){
-         printf("(%lf) \n", bArray[i][0]);
+         //printf("(%lf) \n", bArray[i][0]);
       }
 }
 
@@ -392,15 +392,19 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 
 	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
 		double a = aArr[i][0];
+		printf("a = %f\n", a);
+		printf("BLOCKARRAYSIZE-1 element = %f\n", aArr[BLOCKARRAYSIZE-1][0]);
+		printf("0 element = %f\n", aArr[0][0]);
     	
     	if(a == 0) {
+    		printf("broke after = %f\n", aArr[i + 1][0]);
     		break;
     	}
 
 		for(int j = BLOCKARRAYSIZE-1; j >= 0; j--) {
-			if(a > bArr[j][0]) {
+			/*if(a > bArr[j][0]) {
 				break;
-			}
+			}*/
 
 			if(a == bArr[j][0]) {
 				collisions[collisionTicker][0] = aArr[i][0];
@@ -414,7 +418,7 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 
 		k++;
 	}
-
+	printf("collisionTicker = %d\n", collisionTicker);
 
 }
 
@@ -422,29 +426,29 @@ int main() {
  	struct timeval start, end;
  	gettimeofday(&start, NULL);
 
-  //array for storing a hood
+  	//array for storing a hood
   
  	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
-  //array for storing keys
-  double keyArray[COL];
-  //get the keys
-  input_key(keyArray);
+  	//array for storing keys
+  	double keyArray[COL];
+  	//get the keys
+  	input_key(keyArray);
 	//inputs from text files
- double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
- double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
-  for(int i = 0;i<ROW;i++){
-    if(i!=0){
-      for(int j =0;j<BLOCKARRAYSIZE;j++){
-        for(int k = 0;k<BLOCKSIZE+1;k++) firstBlockArray[j][k] = checkBlockArray[j][k];
-      }
-    }else{
-      parse_data(firstBlockArray,0, keyArray);
-    }
-    for(int j = ROW-1;j>i;j--){
-      parse_data(checkBlockArray,j,keyArray);
-	    collisions(firstBlockArray,checkBlockArray,collisionArray);
-      }
-}
+ 	double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
+ 	double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
+  	for(int i = 0;i<ROW;i++){
+    	if(i!=0){
+      		for(int j =0;j<BLOCKARRAYSIZE;j++){
+        		for(int k = 0;k<BLOCKSIZE+1;k++) firstBlockArray[j][k] = checkBlockArray[j][k];
+      		}
+    	}else{
+      		parse_data(firstBlockArray,0, keyArray);
+    	}
+    	for(int j = ROW-1;j>i;j--){
+      		parse_data(checkBlockArray,j,keyArray);
+	   	 	collisions(firstBlockArray,checkBlockArray,collisionArray);
+      	}
+	}
      
     //signature(col_key);
 
