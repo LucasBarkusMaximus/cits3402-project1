@@ -388,7 +388,9 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
     printf("%s\n","function done" );
 }
 
-void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE], int collisionTicker){
+void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE]){
+	int collisionTicker = 0;
+
 	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
     	double a = aArr[i][0];
   	//printf("a = %f\n", a);
@@ -432,7 +434,6 @@ int main() {
   	//array for storing a hood
   
  	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
- 	int collisionTicker = 0;
   	//array for storing keys
   	double keyArray[COL];
   	//get the keys
@@ -458,18 +459,11 @@ int main() {
 	      	printf("1:%d 2:%d\n", i,j);
 	      	parse_data(checkBlockArray,j,keyArray);
 	      	printf("Parsing done");
-		    collisions(firstBlockArray,checkBlockArray,collisionArray, collisionTicker);
+		    collisions(firstBlockArray,checkBlockArray,collisionArray);
 	      	printf("Program complete");
 	    }
 	}
 
-  	for(int m = 0; m < collisionTicker; m++) {
-		printf("collision %d: sig = %f, rows = %f, %f, %f, %f\n", 
-    		collisionTicker, collisions[m][0], collisions[m][1],
-    		collisions[m][2], collisions[m][3], collisions[m][4]);
-  	}
-
-  	printf("collisionTicker = %d\n", collisionTicker); 
 
 	gettimeofday(&end, NULL);
   	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
