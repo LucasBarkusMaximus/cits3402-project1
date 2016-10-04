@@ -242,23 +242,23 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
 	int M = BLOCKSIZE;
 	//block index
 	int combination = 1; 
-  double signature;
+  	double signature;
 	int j = 1;
-  int i, x, y, z, p[N+2], b[N];
-  double c[BLOCKSIZE*2];
+  	int i, x, y, z, p[N+2], b[N];
+  	double c[BLOCKSIZE*2];
     //Generate the first block (rightmost)
-  for(int k = 0;k<M;k++){c[k]=a[N-M+k][0];}
-  for(int k = 0;k<M;k++){c[M+k]=a[N-M+k][1];}
+  	for(int k = 0;k<M;k++){c[k]=a[N-M+k][0];}
+  	for(int k = 0;k<M;k++){c[M+k]=a[N-M+k][1];}
     //for(int k = 0;k<M;k++){printf("key:%16.0lf row:%4.0lf\n", c[k],c[BLOCKSIZE+k]);}
-  signature = 0;
-  for(i = 0; i<BLOCKSIZE;i++){
+  	signature = 0;
+  	for(i = 0; i<BLOCKSIZE;i++){
       signature += c[i];
       blockArray[0][1+i] = c[BLOCKSIZE+i];
     }
-  blockArray[0][0] = signature;
-  //for(int k = 0;k<M;k++){printf("sig:%16.0lf row:%4.0lf\n", blockArray[0][0],blockArray[0][1+k]);}
+  	blockArray[0][0] = signature;
+  	//for(int k = 0;k<M;k++){printf("sig:%16.0lf row:%4.0lf\n", blockArray[0][0],blockArray[0][1+k]);}
    	//only one combination required? then return
-  if(N==1){return;}
+  	if(N==1){return;}
 	//generate other combinations
  	inittwiddle(M, N, p);
   /*
@@ -285,7 +285,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
    		printf("combo: %d\n", combination);
    		//write keys to block array
    		c[z] = a[x][0];
-      c[BLOCKSIZE+z] = a[x][1];
+      	c[BLOCKSIZE+z] = a[x][1];
    		//write rowIDs to block array
    		//c[M+z] = a[x][1];
         //for(int k = 0;k<M;k++){printf("key:%8.8lf row:%8.8lf\n", c[k],c[BLOCKSIZE+k]);}
@@ -295,66 +295,64 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
             blockArray[combination][1+i] = c[BLOCKSIZE+i];
          }
          blockArray[combination][0] = signature;
-          //for(int k = 0;k<M;k++){printf("sig:%8.8lf row:%8.8lf\n", blockArray[combination][0],blockArray[combination][1+k]);}
+        //for(int k = 0;k<M;k++){printf("sig:%8.8lf row:%8.8lf\n", blockArray[combination][0],blockArray[combination][1+k]);}
    		//write to the next block if that is where this belongs
-   		combination++;
-   		
-   		
-   		
+   		combination++;	
     }
 	
 }
 
 
 void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE], double rArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE]){
-     int i = 0;
-     int block = 0;
-     //find blocks in the next hood if there are any hoods left
-     while(nArray[i][0]!= 0){
-      printf("hood: %d\n", i);
-      int j = 0;
-      //check how big this hood is
-      while(nArray[i][j]!=0){j++;}
-      //if bad neighboorhood (last neighboorhood and size less than 3) ignore it
-      if(j<BLOCKSIZE){break;}
-      printf("hood size: %d\n", j);
-      //extract key and column in and put into smaller array
-      double a[j][2];
-      for(int k = 0; k < (j); k++){
-        a[k][0] = nArray[i][k];
-        a[k][1] = rArray[i][k];
-        }
-      //check number of blocks possible
-      unsigned long long int t = fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
-      printf("combinations: %d\n", t );
-      //create array that blocks will be stored in. Format: everything doubles [sig,row1,row2,row3,row4]x number of blocks
-      double c[t][BLOCKSIZE+1];
-      //generate
-      generate_blocks((j),t, a,c);
+    int i = 0;
+    int block = 0;
+    //find blocks in the next hood if there are any hoods left
+ 	while(nArray[i][0]!= 0){
+	printf("hood: %d\n", i);
+	int j = 0;
+	//check how big this hood is
+	while(nArray[i][j]!=0){j++;}
+	//if bad neighboorhood (last neighboorhood and size less than 3) ignore it
+	if(j<BLOCKSIZE){break;}
+	printf("hood size: %d\n", j);
+	//extract key and column in and put into smaller array
+	double a[j][2];
+	for(int k = 0; k < (j); k++){
+		a[k][0] = nArray[i][k];
+		a[k][1] = rArray[i][k];
+	}
+	//check number of blocks possible
+	unsigned long long int t = fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
+	printf("combinations: %d\n", t );
+	//create array that blocks will be stored in. Format: everything doubles [sig,row1,row2,row3,row4]x number of blocks
+	double c[t][BLOCKSIZE+1];
+	//generate
+	generate_blocks((j),t, a,c);
 
-       for (int k = 0; k < t; k++) {
+    for (int k = 0; k < t; k++) {
         for(int l = 0;l<(1+BLOCKSIZE);l++){
 
-           bArray[block][l] = c[k][l];
+           	bArray[block][l] = c[k][l];
             //if(l==0){ printf("block:%d Item:%lf\n", block, c[k][l]);}
-          }
-          block++;
+          	}
+          	block++;
         }
-      i++;
-     }
 
-      qsort(bArray, BLOCKARRAYSIZE, sizeof(*bArray), compareDouble);
-      //for (int i = 0; i < 1000; ++i){printf("(%lf) \n", bArray[i][0]);}
-      printf("%s\n","done" );
+      	i++;
+    }
+
+    qsort(bArray, BLOCKARRAYSIZE, sizeof(*bArray), compareDouble);
+    //for (int i = 0; i < 1000; ++i){printf("(%lf) \n", bArray[i][0]);}
+    printf("%s\n","done" );
 }
 
 void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double keyArray[COL]){
-  float colArray[COL][2]; //an array for values and one for keys
-  //get the first column SET COLUMN HERE (change to automated after testing)
-  input_data(colArray,column);
+  	float colArray[COL][2]; //an array for values and one for keys
+  	//get the first column SET COLUMN HERE (change to automated after testing)
+  	input_data(colArray,column);
   
-  double neighbArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE];
-  double rowArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE];
+  	double neighbArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE];
+  	double rowArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE];
   
   /*
   printf("OG: \n");
@@ -373,78 +371,78 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
    */
 
     //generate all hoods for this column
-     generate_neighborhood(NEIGHBOURHOODNUMBER,NEIGHBOURHOODSIZE, colArray, neighbArray, keyArray, rowArray);
+    generate_neighborhood(NEIGHBOURHOODNUMBER,NEIGHBOURHOODSIZE, colArray, neighbArray, keyArray, rowArray);
     /*
-     while(neighbArray[i][0]!= 0){
-      int j = 0;
-      while(neighbArray[i][j]!=0){j++;}
+    while(neighbArray[i][0]!= 0){
+    	int j = 0;
+      	while(neighbArray[i][j]!=0){j++;}
         if(j<BLOCKSIZE){break;}
         comb += fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
         printf("%d\n", comb);
-      i++;
-     }
-     blockArray[comb][1+BLOCKSIZE];
-     i = 0;
+      	i++;
+    }
+    blockArray[comb][1+BLOCKSIZE];
+    i = 0;
 */
-      generate_blockArray(bArray,neighbArray,rowArray);
-      printf("%s\n","function done" );
+    generate_blockArray(bArray,neighbArray,rowArray);
+    printf("%s\n","function done" );
 }
 
 void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE]){
-  int collisionTicker = 0;
+	int collisionTicker = 0;
 
-  for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
-    double a = aArr[i][0];
-  //  printf("a = %f\n", a);
+	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
+    	double a = aArr[i][0];
+  	//printf("a = %f\n", a);
     //printf("%d element = %f\n", i, aArr[BLOCKARRAYSIZE-1][0]);
     //printf("0 element = %f\n", aArr[0][0]);
       
-      if(a == 0) {
-       // printf("broke after = %f\n", aArr[i + 1][0]);
-        break;
-      }
+    	if(a == 0) {
+       	// printf("broke after = %f\n", aArr[i + 1][0]);
+        	break;
+      	}
 
-    for(int j = BLOCKARRAYSIZE-1; j >= 0; j--) {
-      if(a > bArr[j][0]) {
-        break;
-      }
+	    for(int j = BLOCKARRAYSIZE-1; j >= 0; j--) {
+	      	if(a > bArr[j][0]) {
+	        	break;
+	      	}
 
-      if(a == bArr[j][0]) {
-        for(int k = 0; k <= BLOCKSIZE; k++) {
-          collisions[collisionTicker][k] = aArr[i][k];
-        }
+	      	if(a == bArr[j][0]) {
+	        	for(int k = 0; k <= BLOCKSIZE; k++) {
+	          		collisions[collisionTicker][k] = aArr[i][k];
+	        	}
 
-        collisionTicker++;
-      }
-    }
-  }
+	        	collisionTicker++;
+	      		}
+	   	}
+	}
 
-  for(int m = 0; m < collisionTicker; m++) {
-    printf("collision %d: sig = %f, rows = %f, %f, %f, %f\n", 
-      collisionTicker, collisions[m][0], collisions[m][1],
-      collisions[m][2], collisions[m][3], collisions[m][4]);
-  }
+  	for(int m = 0; m < collisionTicker; m++) {
+		printf("collision %d: sig = %f, rows = %f, %f, %f, %f\n", 
+    		collisionTicker, collisions[m][0], collisions[m][1],
+    		collisions[m][2], collisions[m][3], collisions[m][4]);
+  	}
 
-  printf("collisionTicker = %d\n", collisionTicker);
-
+  	printf("collisionTicker = %d\n", collisionTicker);
 }
 
 
 int main() {
- 	struct timeval start, end;
- 	gettimeofday(&start, NULL);
+ 	//struct timeval start, end;
+ 	//gettimeofday(&start, NULL);
+ 	clock_t begin = clock();
 
-  //array for storing a hood
+  	//array for storing a hood
   
  	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
-  //array for storing keys
-  double keyArray[COL];
-  //get the keys
-  input_key(keyArray);
+  	//array for storing keys
+  	double keyArray[COL];
+  	//get the keys
+  	input_key(keyArray);
 	//inputs from text files
- double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
- double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
-  for(int i = 0;i<ROW;i++){
+ 	double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
+ 	double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
+  	for(int i = 0;i<ROW;i++){
     /*
     if(i!=0){
       for(int j =0;j<BLOCKARRAYSIZE;j++){
@@ -456,25 +454,29 @@ int main() {
       printf("First one done");
     }
     */
-    parse_data(firstBlockArray,i, keyArray);
+    	parse_data(firstBlockArray,i, keyArray);
 
-    for(int j = ROW-1;j>i;j--){
-      printf("1:%d 2:%d\n", i,j);
-      parse_data(checkBlockArray,j,keyArray);
-      printf("Parsing done");
-	    collisions(firstBlockArray,checkBlockArray,collisionArray);
-      printf("Program complete");
-      }
-}
+	    for(int j = ROW-1;j>i;j--){
+	      	printf("1:%d 2:%d\n", i,j);
+	      	parse_data(checkBlockArray,j,keyArray);
+	      	printf("Parsing done");
+		    collisions(firstBlockArray,checkBlockArray,collisionArray);
+	      	printf("Program complete");
+	    }
+	}
      
     //signature(col_key);
 
 
-	gettimeofday(&end, NULL);
+	/*gettimeofday(&end, NULL);
   	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
   		 end.tv_usec - start.tv_usec) / 1.e6;
 
-  	printf("time = %5.10f seconds\n",delta);
+  	printf("time = %5.10f seconds\n",delta);*/
+
+	clock_t end = clock();
+	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC; 
+	printf("time = %5.10f seconds\n", time_spent);
 
 	return 0;
 }
