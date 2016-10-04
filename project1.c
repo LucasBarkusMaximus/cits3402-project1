@@ -428,9 +428,8 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 
 
 int main() {
- 	//struct timeval start, end;
- 	//gettimeofday(&start, NULL);
- 	clock_t begin = clock();
+ 	struct timeval start, end;
+ 	gettimeofday(&start, NULL);
 
   	//array for storing a hood
   
@@ -464,19 +463,13 @@ int main() {
 	      	printf("Program complete");
 	    }
 	}
-     
-    //signature(col_key);
 
 
-	/*gettimeofday(&end, NULL);
+	gettimeofday(&end, NULL);
   	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
   		 end.tv_usec - start.tv_usec) / 1.e6;
 
-  	printf("time = %5.10f seconds\n",delta);*/
-
-	clock_t end = clock();
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC; 
-	printf("time = %5.10f seconds\n", time_spent);
+  	printf("time = %5.10f seconds\n",delta);
 
 	return 0;
 }
