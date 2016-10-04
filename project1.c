@@ -393,7 +393,7 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
 		double a = aArr[i][0];
 		printf("a = %f\n", a);
-		printf("BLOCKARRAYSIZE-1 element = %f\n", aArr[BLOCKARRAYSIZE-1][0]);
+		printf("%d element = %f\n", i, aArr[BLOCKARRAYSIZE-1][0]);
 		printf("0 element = %f\n", aArr[0][0]);
     	
     	if(a == 0) {
@@ -407,17 +407,21 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 			}*/
 
 			if(a == bArr[j][0]) {
-				collisions[collisionTicker][0] = aArr[i][0];
+				for(int k = 0; k <= BLOCKSIZE; k++) {
+					collisions[collisionTicker][k] = aArr[i][k];
+				}
+
 				collisionTicker++;
 			}
 		}
 	}
 
-	for(int k = 0; k < collisionTicker; k++) {
-		printf("collisions: %f\n", collisions[k][0]);
-
-		k++;
+	for(int m = 0; m <= collisionTicker; m++) {
+		printf("collision %d: sig = %f, rows = %f, %f, %f, %f\n", 
+			collisionTicker, collisions[m][0], collisions[m][1],
+			collisions[m][2], collisions[m][3], collisions[m][4]);
 	}
+
 	printf("collisionTicker = %d\n", collisionTicker);
 
 }
