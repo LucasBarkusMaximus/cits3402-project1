@@ -1,25 +1,34 @@
-
 #include <sys/time.h>
 #include <omp.h>
-#include <windows.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 
-#define DIA 0.000001
-#define COL 4400
-#define ROW 7
-#define KEYCHARS 70000
-#define DATACHARS 45000
+//number of rows in a block
 #define BLOCKSIZE 4
-#define NEIGHBOURHOODNUMBER 1000
-#define NEIGHBOURHOODSIZE 100
+//size of array holding each columns blocks
 #define BLOCKARRAYSIZE 2047
+//column length in data.txt
+#define COL 4400
+//size of matrix holding collisions
 #define COLLISIONARRAYSIZE 1000
-
-
+//size of bytes in data file
+#define DATACHARS 45000
+//diff between values in a neighbourhood
+#define DIA 0.000001
+//size of bytes in key file
+#define KEYCHARS 70000
+//max number of neighbourhoods in a given column
+#define NEIGHBOURHOODNUMBER 1000
+//max size of neighbourhood in given column
+#define NEIGHBOURHOODSIZE 100
+//amount of columns read into program to compute collisions
+//NB. max is 499
+//NB. row 499 seems impossible to read in, even by itself
+//NB. 6 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
+#define ROW 6
 
 
 
@@ -154,25 +163,31 @@ int m, n, *p;
     p[1] = 1;
   }
 
+//function takes 2 floats in an array and compares which is larger, for use in qsort
 int compareFloat(const void *a, const void *b) {
    float x1 = *(const float*)a;
    float x2 = *(const float*)b;
+
    if (x1 > x2) return  1;
    if (x1 < x2) return -1;
+   
    return 0;
 }	
 
+//function takes 2 doubles in an array and compares which is larger, for use in qsort
 int compareDouble(const void *a, const void *b) {
    double x1 = *(const double*)a;
    double x2 = *(const double*)b;
+
    if (x1 > x2) return  1;
    if (x1 < x2) return -1;
+
    return 0;
 } 
 
 
 double findKey(int loc, double kyArr[COL]){
-return kyArr[loc];
+	return kyArr[loc];
 }
 
 
@@ -388,52 +403,67 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
     printf("%s\n","function done" );
 }
 
-void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE]){
+//function takes sorted ascending arrays of the blocks generated in two columns, a collision array to output collisions to, and the index of each column being compared
+//prints collisions between the two columns
+void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE], int i, int j){
+	//keeps track of total number of collisions
 	int collisionTicker = 0;
 
+	//iterates over each signature in first array, starting from the highest 
 	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
+		//a contains signature being compared
     	double a = aArr[i][0];
-  	//printf("a = %f\n", a);
-    //printf("%d element = %f\n", i, aArr[BLOCKARRAYSIZE-1][0]);
-    //printf("0 element = %f\n", aArr[0][0]);
+  		//printf("a = %f\n", a);
+    	//printf("%d element = %f\n", i, aArr[BLOCKARRAYSIZE-1][0]);
+    	//printf("0 element = %f\n", aArr[0][0]);
       
+      	//if signature is zero, reached array space unfilled by blocks
     	if(a == 0) {
        	// printf("broke after = %f\n", aArr[i + 1][0]);
         	break;
       	}
 
+      	//iterates over each signature in second (comparison) array, starting from the highest
 	    for(int j = BLOCKARRAYSIZE-1; j >= 0; j--) {
+	    	//informs loop to save time by stopping comparing signatures when the first signature is higher than the comparison signature
 	      	if(a > bArr[j][0]) {
 	        	break;
 	      	}
 
+	      	//if signatures match
 	      	if(a == bArr[j][0]) {
+	      		//fill collision matrix with signature and rows (block info)
 	        	for(int k = 0; k <= BLOCKSIZE; k++) {
 	          		collisions[collisionTicker][k] = aArr[i][k];
 	        	}
 
+	        	//increment number of collisions
 	        	collisionTicker++;
 	      		}
 	   	}
 	}
 
+	//print all blocks that collide and the columns theyre found in
   	for(int m = 0; m < collisionTicker; m++) {
-		printf("collision %d: sig = %f, rows = %f, %f, %f, %f\n", 
+		printf("collision %d: sig = %f, rows = %f, %f, %f, %f, columns = %d and %d\n", 
     		collisionTicker, collisions[m][0], collisions[m][1],
-    		collisions[m][2], collisions[m][3], collisions[m][4]);
+    		collisions[m][2], collisions[m][3], collisions[m][4],
+    		i, j);
   	}
 
+  	//print total number off collisions
   	printf("collisionTicker = %d\n", collisionTicker);
 }
 
 
 int main() {
+	//struct to contain time values at start and end of execution
  	struct timeval start, end;
+ 	//get time at start of execution
  	gettimeofday(&start, NULL);
 
-  	//array for storing a hood
-  
- 	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
+ 	//array for storing collisions
+   	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
   	//array for storing keys
   	double keyArray[COL];
   	//get the keys
@@ -465,11 +495,14 @@ int main() {
 	}
 
 
+	//get time of day at end of execution
 	gettimeofday(&end, NULL);
+	//compute time taken in seconds
   	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
   		 end.tv_usec - start.tv_usec) / 1.e6;
 
-  	printf("time = %5.10f seconds\n",delta);
+  	//print time program took to execute
+  	printf("time = %5.10f seconds\n", delta);
 
 	return 0;
 }
