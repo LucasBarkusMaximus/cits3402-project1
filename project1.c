@@ -38,7 +38,7 @@ void input_data(float arr[COL][2], int colNumber){
 	int j = 0;
 	char str[DATACHARS];
 	f = fopen("data.txt", "r");
-  	//while reading a line
+  //while reading a line
 	while(fgets(str, DATACHARS, f)!=NULL){
 		//seperate on commas
 		const char s[2] = ",";
@@ -66,13 +66,13 @@ void input_data(float arr[COL][2], int colNumber){
 
 //read keys from file. Keys are seperateed by whitespace and are sequential
 void input_key(double arr[COL]){
- 	//open and read
-  	FILE *f;
+  //open and read
+  FILE *f;
 	char str[KEYCHARS];
 	f = fopen("keys.txt", "r");
-  	//while there are lines to read
+  //while there are lines to read
 	if(fgets(str, KEYCHARS, f)!=NULL){
-	 	//split on space
+	 //split on space
 		const char s[2] = " ";
    		char *token;
 		token = strtok(str, s);
@@ -187,10 +187,10 @@ double findKey(int loc, double kyArr[COL]){
 
 //fill an empty matrix with all neighboorhoods for a given column
 void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],double nArr[suburb][street],double kyArr[COL],double rArr[suburb][street]){
-  	//Flags used to prevent redundant blocks being generated later
+  //Flags used to prevent redundant blocks being generated later
 	int sFlag = 0;
 	int eFlag = 1;
-  	//start at neighborhood 0
+  //start at neighborhood 0
 	int neighbourhood = 0;
 	//for each element in the column
 	for(int i = 0;i<(COL-BLOCKSIZE); i++){
@@ -205,19 +205,19 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 		rArr[neighbourhood][0] = cArr[0][1];
 		//element to be checked for entry into current neighborhood. (the next element after i)
 		int j = i+1;
-    	//"distance" between the vlaues in the first element of the neighborhood and the current one
+    //"distance" between the vlaues in the first element of the neighborhood and the current one
 		float dist  = (cArr[j][0]-cArr[i][0]);
 
 		//if the new element is within dist, add it to the hood and check the next one etc.
 		while(dist<=DIA){
-      	//record the value's key and rowID
+      //record the value's key and rowID
 			double key = findKey(cArr[j][1], kyArr);
 			nArr[neighbourhood][j-i] = key;
 			rArr[neighbourhood][j-i] = cArr[j][1];
 			j++;
-      		//if there is space in the array, set the next distance, otherwise stop
+      //if there is space in the array, set the next distance, otherwise stop
 			if(j-i< street){
-				dist  = (cArr[j][0]-cArr[i][0]);
+			dist  = (cArr[j][0]-cArr[i][0]);
 			}else{
 				break;
 			}
@@ -228,7 +228,9 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 		if(!nArr[neighbourhood][BLOCKSIZE-1] == 0){
 			neighbourhood++;
 		}
+		
 	}
+
 }
 	
 //calculate a recursive factorial, for calcualting some N choose R
@@ -245,12 +247,11 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
 	int M = BLOCKSIZE;
 	//block index
 	int combination = 1; 
-  	//sum of block keys
-  	double signature;
+  //sum of block keys
+  double signature;
 	int j = 1;
   	int i, x, y, z, p[N+2], b[N];
   	double c[BLOCKSIZE*2];
-    
     //Generate the first block (rightmost)
   	for(int k = 0;k<M;k++){c[k]=a[N-M+k][0];}
   	for(int k = 0;k<M;k++){c[M+k]=a[N-M+k][1];}
@@ -259,7 +260,6 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
       signature += c[i];
       blockArray[0][1+i] = c[BLOCKSIZE+i];
     }
-
   	blockArray[0][0] = signature;
    	//only one combination required? then return
   	if(N==1){return;}
@@ -270,19 +270,19 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
  	while(!twiddle(&x, &y, &z, p)){
    		//write keys to block array
    		c[z] = a[x][0];
-      	//write rowIDs to block array
-      	c[BLOCKSIZE+z] = a[x][1];
-      	//sum the keys within this block and store signature
+      //write rowIDs to block array
+      c[BLOCKSIZE+z] = a[x][1];
+      //sum the keys within this block and store signature
         signature = 0;
         for(i = 0; i<BLOCKSIZE;i++){
             signature += c[i];
             blockArray[combination][1+i] = c[BLOCKSIZE+i];
-        }
-
-        blockArray[combination][0] = signature;
+         }
+         blockArray[combination][0] = signature;
    		//write to the next block if that is where this belongs
    		combination++;	
     }
+	
 }
 
 //Find all blocks within a column and store them in an array
@@ -309,7 +309,7 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 	double c[t][BLOCKSIZE+1];
 	//generate the blocks for this neighborhood
 	generate_blocks((j),t, a,c);
-  	//store the blocks that have been generated
+  //store the blocks that have been generated
     for (int k = 0; k < t; k++) {
         for(int l = 0;l<(1+BLOCKSIZE);l++){
 
@@ -348,8 +348,10 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
 
 //function takes sorted ascending arrays of the blocks generated in two columns, a collision array to output collisions to, and the index of each column being compared
 //prints collisions between the two columns
-void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE], int collisionTicker, int i, int j){
-	int currentCollisionTicker;
+void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE], int i, int j){
+	//keeps track of total number of collisions
+	int collisionTicker = 0;
+
 	//iterates over each signature in first array, starting from the highest 
 	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
 		//a contains signature being compared
@@ -375,18 +377,25 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 	      	if(a == bArr[j][0]) {
 	      		//fill collision matrix with signature and rows (block info)
 	        	for(int k = 0; k <= BLOCKSIZE; k++) {
-	          		collisions[collisionTicker + currentCollisionTicker][k] = aArr[i][k];
+	          		collisions[collisionTicker][k] = aArr[i][k];
 	        	}
 
 	        	//increment number of collisions
-	        	currentCollisionTicker++;
-
-	        	break;
-	      	}
+	        	collisionTicker++;
+	      		}
 	   	}
 	}
-	printf("collisions in rows %d and %d = %d\n", i, j, currentCollisionTicker);
-	collisionTicker += currentCollisionTicker;
+
+	//print all blocks that collide and the columns theyre found in
+  	for(int m = 0; m < collisionTicker; m++) {
+		  printf("collision %d: sig = %f, rows = %f, %f, %f, %f, columns = %d and %d\n", 
+    		collisionTicker, collisions[m][0], collisions[m][1],
+    		collisions[m][2], collisions[m][3], collisions[m][4],
+    		i, j);
+  	}
+
+  	//print total number off collisions
+  	printf("collisionTicker = %d\n", collisionTicker);
 }
 
 int main() {
@@ -402,35 +411,23 @@ int main() {
   	//get the keys
   	input_key(keyArray);
 	//inputs from text files
-  	//Allocate an array for the blocks from two columns at a time
+  //Allocate an array for the blocks from two columns at a time
  	double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
  	double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
-	//keeps track of total number of collisions
-	int collisionTicker;
-
-  	//Use a column as a pivot around which to find collisions with all other columns
+  //Use a column as a pivot around which to find collisions with all other columns
   	for(int i = 0;i<ROW;i++){
-   	//generate blocks array for this first column
+   //generate blocks array for this first column
     	parse_data(firstBlockArray,i, keyArray);
 
 	    for(int j = ROW-1;j>i;j--){
 	       //generate second block matrix and compare
 	      	parse_data(checkBlockArray,j,keyArray);
 	      
-		    collisions(firstBlockArray,checkBlockArray,collisionArray,collisionTicker,i,j);
-
-		    //print all blocks that collide and the columns theyre found in
-  			for(int m = 0; m < collisionTicker; m++) {
-		  		printf("collision %d: sig = %f, rows = %f, %f, %f, %f, columns = %d and %d\n", 
-    				m+1, collisionArray[m][0], collisionArray[m][1],
-    				collisionArray[m][2], collisionArray[m][3], collisionArray[m][4],
-    				i, j);
-  			}	
+		    collisions(firstBlockArray,checkBlockArray,collisionArray,i,j);
+	      	
 	    }
 	}
 
-	//print total number of collisions
-	printf("collisionTicker = %d\n", collisionTicker); 
 
 	//get time of day at end of execution
 	gettimeofday(&end, NULL);
