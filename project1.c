@@ -28,7 +28,7 @@
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 6 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 8
+#define ROW 7
 
 
 //read comma sperated values from text file and store the [colNumber]'th number in each line an array
@@ -180,6 +180,16 @@ int compareDouble(const void *a, const void *b) {
    return 0;
 } 
 
+void clear_array(size_t x, size_t y, double array[x][y]){
+  for(int i = 0; i<x; i++){
+    for(int j = 0;j<y; j++){
+      //printf("%lf\n", array[i][j]);
+      array[i][j] = (double) 0;
+      //printf("%lf\n", array[i][j]);
+    }
+  }
+
+}
 
 double findKey(int loc, double kyArr[COL]){
 	return kyArr[loc];
@@ -198,11 +208,11 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 		sFlag = i;
 		//if there is a block sized overlap between the last neighborhood and this new one, shift the start of the new neighborhood up so that there is no overlap
 		if((eFlag-sFlag)>=BLOCKSIZE){
-			i = eFlag;
+			i = eFlag-BLOCKSIZE+1;
 		}
 		//this element (i) starts a neighbourhood
 		nArr[neighbourhood][0] = findKey(cArr[i][1],kyArr);
-		rArr[neighbourhood][0] = cArr[0][1];
+		rArr[neighbourhood][0] = cArr[i][1];
 		//element to be checked for entry into current neighborhood. (the next element after i)
 		int j = i+1;
     //"distance" between the vlaues in the first element of the neighborhood and the current one
@@ -227,7 +237,13 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 		//if this hood is too small to contain blocks, recycle its index in the array
 		if(!nArr[neighbourhood][BLOCKSIZE-1] == 0){
 			neighbourhood++;
-		}
+		}else{
+      int val = 0;
+      while(nArr[neighbourhood][val] != 0){
+        nArr[neighbourhood][val] = 0;
+        val++;
+      }
+    }
 		
 	}
 
@@ -300,6 +316,10 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 	//extract key and column info and put into smaller array
 	double a[j][2];
 	for(int k = 0; k < (j); k++){
+    printf("key  %.1lf  ",nArray[i][k]);
+    printf("key  %.1lf  ",nArray[i][k]);
+    printf("row  %.1lf  \n",rArray[i][k]);
+
 		a[k][0] = nArray[i][k];
 		a[k][1] = rArray[i][k];
 	}
@@ -309,22 +329,29 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 	double c[t][BLOCKSIZE+1];
 	//generate the blocks for this neighborhood
 	generate_blocks((j),t, a,c);
+
+printf("new block set\n");
   //store the blocks that have been generated
     for (int k = 0; k < t; k++) {
         for(int l = 0;l<(1+BLOCKSIZE);l++){
 
            	bArray[block][l] = c[k][l];
+            printf("  %.1lf  ",c[k][l]);
           	}
             //If a slot in the block array has been filled, fill the next index along with the next value and so on
-            //printf("%d\n",block);
+            printf("\n");
           	block++;
 
         }
 
       	i++;
+        printf("\n");
     }
+    //for(int k = 0; k< BLOCKARRAYSIZE-1800;k++)printf("%d,%.1lf,%.1lf,%.1lf,%.1lf,%.1lf\n", k, bArray[k][0], bArray[k][1], bArray[k][2], bArray[k][3], bArray[k][4]);
     //sort the completed block arrray from lowest to highest signature
     qsort(bArray, BLOCKARRAYSIZE, sizeof(*bArray), compareDouble);
+
+    for(int k = BLOCKARRAYSIZE-1; k> BLOCKARRAYSIZE-100;k--)printf("%d,%.1lf,%.1lf,%.1lf,%.1lf,%.1lf\n", k, bArray[k][0], bArray[k][1], bArray[k][2], bArray[k][3], bArray[k][4]);
 }
 
 
@@ -378,8 +405,9 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 	      		//fill collision matrix with signature and rows (block info)
 	        	for(int k = 0; k <= BLOCKSIZE; k++) {
 	          		collisions[collisionTicker][k] = aArr[i][k];
+                
 	        	}
-
+            printf("test: collision %d %d %d\n", collisionTicker, i, j);
 	        	//increment number of collisions
 	        	collisionTicker++;
 	      		}
@@ -388,46 +416,52 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 
 	//print all blocks that collide and the columns theyre found in
   	for(int m = 0; m < collisionTicker; m++) {
-		  printf("collision %d: sig = %f, rows = %f, %f, %f, %f, columns = %d and %d\n", 
-    		collisionTicker, collisions[m][0], collisions[m][1],
+		  printf("collision %d: sig = %.1f, rows = %.1f, %.1f, %.1f, %.1f, columns = %.1d and %.1d\n", 
+    		m+1, collisions[m][0], collisions[m][1],
     		collisions[m][2], collisions[m][3], collisions[m][4],
     		i, j);
   	}
 
   	//print total number off collisions
-  	printf("collisionTicker = %d\n", collisionTicker);
+  	//printf("collisionTicker = %d\n", collisionTicker);
 }
+
+
 
 int main() {
 	//struct to contain time values at start and end of execution
  	struct timeval start, end;
  	//get time at start of execution
  	gettimeofday(&start, NULL);
-
+  int totalCollisions = 0;
  	//array for storing collisions
    	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
+    //double outputArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
   	//array for storing keys
   	double keyArray[COL];
   	//get the keys
   	input_key(keyArray);
 	//inputs from text files
   //Allocate an array for the blocks from two columns at a time
- 	double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
- 	double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE];
+ 	double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
+ 	double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
   //Use a column as a pivot around which to find collisions with all other columns
-  	for(int i = 0;i<ROW;i++){
+  	for(int i = 0;i<ROW-1;i++){
    //generate blocks array for this first column
     	parse_data(firstBlockArray,i, keyArray);
 
 	    for(int j = ROW-1;j>i;j--){
 	       //generate second block matrix and compare
-	      	parse_data(checkBlockArray,j,keyArray);
-	      
+	      parse_data(checkBlockArray,j,keyArray);
 		    collisions(firstBlockArray,checkBlockArray,collisionArray,i,j);
-	      	
+
+        clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,checkBlockArray);
+        clear_array(COLLISIONARRAYSIZE,1+BLOCKSIZE,collisionArray);
 	    }
+    clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,firstBlockArray);
 	}
 
+ 
 
 	//get time of day at end of execution
 	gettimeofday(&end, NULL);
