@@ -455,8 +455,6 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
   	//printf("collisionTicker = %d\n", collisionTicker);
 }
 
-
-
 int main() {
 	//struct to contain time values at start and end of execution
  	struct timeval start, end;
