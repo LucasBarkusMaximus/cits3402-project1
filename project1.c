@@ -9,28 +9,28 @@
 //number of rows in a block
 #define BLOCKSIZE 4
 //size of array holding each columns blocks
-#define BLOCKARRAYSIZE 2047
+#define BLOCKARRAYSIZE 10000
 //column length in data.txt
 #define COL 4400
 //size of matrix holding collisions
 #define COLLISIONARRAYSIZE 1000
 //size of bytes in data file
-#define DATACHARS 7000
+#define DATACHARS 40000//7000
 //diff between values in a neighbourhood
 #define DIA 0.000001
 //size of bytes in key file
-#define KEYCHARS 70000
+#define KEYCHARS 71000
 //max number of neighbourhoods in a given column
 #define NEIGHBOURHOODNUMBER 1000
 //max size of neighbourhood in given column
-#define NEIGHBOURHOODSIZE 100
+#define NEIGHBOURHOODSIZE 200
 //optimal number of threads
 #define NUM_THREADS 4
 //amount of columns read into program to compute collisions
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 89 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 91
+#define ROW 92
 
 
 //read comma sperated values from text file and store the [colNumber]'th number in each line an array
@@ -233,10 +233,10 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			//printf("rArr = %lf\n", rArr[neighbourhood][j-i]);
 			j++;
       		//if there is space in the array, set the next distance, otherwise stop
-			if(j-i< street){
+			if(j-i < street){
 			dist  = (cArr[j][0]-cArr[i][0]);
 			}else{
-        		printf("\nhood too small\n");
+        		//printf("\nhood too small\n");
 				break;
 			}
 		}
@@ -247,7 +247,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			if(neighbourhood<NEIGHBOURHOODNUMBER-1){
 				neighbourhood++;
 			}else{
-        		printf("not enough hoods\n");
+        		//printf("not enough hoods\n");
         		break;
       		}	
 		}	
@@ -276,7 +276,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
     //Generate the first block (rightmost)
   	for(int k = 0; k < M; k++){
   		c[k]=a[N-M+k][0];
-  		printf("c[k] = %f\n", c[k]);
+  		//printf("c[k] = %f\n", c[k]);
   	}
   	for(int k = 0; k < M; k++){
   		c[M+k]=a[N-M+k][1];
@@ -284,7 +284,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
   	signature = 0;
 
   	for(i = 0; i < BLOCKSIZE; i++){
-  		printf("c[i] = %f\n", c[i]);
+  		//printf("c[i] = %f\n", c[i]);
       	signature += c[i];
       	blockArray[0][1+i] = c[BLOCKSIZE+i];
     }
@@ -333,9 +333,9 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 		//extract key and column info and put into smaller array
 		double a[j][2];
 		for(int k = 0; k < (j); k++){
-    		printf("key  %.1lf  ",nArray[i][k]);
     		//printf("key  %.1lf  ",nArray[i][k]);
-    		printf("row  %.1lf  \n",rArray[i][k]);
+    		//printf("key  %.1lf  ",nArray[i][k]);
+    		//printf("row  %.1lf  \n",rArray[i][k]);
 
 			a[k][0] = nArray[i][k];
 			a[k][1] = rArray[i][k];
@@ -348,16 +348,16 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 		//generate the blocks for this neighborhood
 		generate_blocks((j),t, a,c);
 
-		printf("new block set\n");
+		//printf("new block set\n");
 	  	//store the blocks that have been generated
 	    for (int k = 0; k < t; k++) {
 	        for(int l = 0;l<(1+BLOCKSIZE);l++){
 
 	           	bArray[block][l] = c[k][l];
-	            printf("  %.1lf  ",c[k][l]);
+	            //printf("  %.1lf  ",c[k][l]);
 	        }
 	            //If a slot in the block array has been filled, fill the next index along with the next value and so on
-	            printf("\n");
+	            //printf("\n");
 	          	block++;
 
 	    }
@@ -444,14 +444,14 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 	}
 
 	//print all blocks that collide and the columns theyre found in
-  	/*for(int m = 0; m < collisionTicker; m++) {
+  	for(int m = 0; m < collisionTicker; m++) {
 		printf("collision %d: sig = %.1f, rows = %.1f, %.1f, %.1f, %.1f, columns = %.1d and %.1d\n", 
     		m+1, collisions[m][0], collisions[m][1],
     		collisions[m][2], collisions[m][3], collisions[m][4],
     		i, j);
-  	}*/
+  	}
 
-  	//print total number off collisions
+  	//print total number of collisions
   	//printf("collisionTicker = %d\n", collisionTicker);
 }
 
