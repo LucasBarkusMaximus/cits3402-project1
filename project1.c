@@ -24,11 +24,13 @@
 #define NEIGHBOURHOODNUMBER 1000
 //max size of neighbourhood in given column
 #define NEIGHBOURHOODSIZE 100
+//optimal number of threads
+#define NUM_THREADS 4
 //amount of columns read into program to compute collisions
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
-//NB. 6 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 90
+//NB. 89 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
+#define ROW 10
 
 
 //read comma sperated values from text file and store the [colNumber]'th number in each line an array
@@ -261,8 +263,8 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
 	int M = BLOCKSIZE;
 	//block index
 	int combination = 1; 
-  //sum of block keys
-  double signature;
+  	//sum of block keys
+  	double signature;
 	int j = 1;
   	int i, x, y, z, p[N+2], b[N];
   	double c[BLOCKSIZE*2] = {0};
@@ -270,29 +272,35 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
   	for(int k = 0;k<M;k++){c[k]=a[N-M+k][0];}
   	for(int k = 0;k<M;k++){c[M+k]=a[N-M+k][1];}
   	signature = 0;
+
   	for(i = 0; i<BLOCKSIZE;i++){
-      signature += c[i];
-      blockArray[0][1+i] = c[BLOCKSIZE+i];
+      	signature += c[i];
+      	blockArray[0][1+i] = c[BLOCKSIZE+i];
     }
+
   	blockArray[0][0] = signature;
+   	
    	//only one combination required? then return
   	if(N==1){return;}
+	
 	//generate all other other combinations
  	inittwiddle(M, N, p);
 
-//while more combinations still exist
+	//while more combinations still exist
  	while(!twiddle(&x, &y, &z, p)){
    		//write keys to block array
    		c[z] = a[x][0];
-      //write rowIDs to block array
-      c[BLOCKSIZE+z] = a[x][1];
-      //sum the keys within this block and store signature
+      	//write rowIDs to block array
+      	c[BLOCKSIZE+z] = a[x][1];
+      	//sum the keys within this block and store signature
         signature = 0;
+
         for(i = 0; i<BLOCKSIZE;i++){
             signature += c[i];
             blockArray[combination][1+i] = c[BLOCKSIZE+i];
-         }
-         blockArray[combination][0] = signature;
+        }
+
+        blockArray[combination][0] = signature;
    		//write to the next block if that is where this belongs
    		combination++;	
     }
@@ -328,8 +336,8 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 	//generate the blocks for this neighborhood
 	generate_blocks((j),t, a,c);
 
-//printf("new block set\n");
-  //store the blocks that have been generated
+	//printf("new block set\n");
+  	//store the blocks that have been generated
     for (int k = 0; k < t; k++) {
         for(int l = 0;l<(1+BLOCKSIZE);l++){
 
@@ -367,7 +375,6 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
     //generate all hoods for this column
     generate_neighborhood(NEIGHBOURHOODNUMBER,NEIGHBOURHOODSIZE, colArray, neighbArray, keyArray, rowArray);
     generate_blockArray(bArray,neighbArray,rowArray);
-  
 }
 
 
@@ -405,7 +412,7 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 	          		collisions[collisionTicker][k] = aArr[i][k];
                 
 	        	}
-            //printf("test: collision %d %d %d\n", collisionTicker, i, j);
+            	//printf("test: collision %d %d %d\n", collisionTicker, i, j);
 	        	//increment number of collisions
 	        	collisionTicker++;
 	      		}
@@ -414,7 +421,7 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 
 	//print all blocks that collide and the columns theyre found in
   	for(int m = 0; m < collisionTicker; m++) {
-		  printf("collision %d: sig = %.1f, rows = %.1f, %.1f, %.1f, %.1f, columns = %.1d and %.1d\n", 
+		printf("collision %d: sig = %.1f, rows = %.1f, %.1f, %.1f, %.1f, columns = %.1d and %.1d\n", 
     		m+1, collisions[m][0], collisions[m][1],
     		collisions[m][2], collisions[m][3], collisions[m][4],
     		i, j);
@@ -431,46 +438,66 @@ int main() {
  	struct timeval start, end;
  	//get time at start of execution
  	gettimeofday(&start, NULL);
-  int totalCollisions = 0;
+  	
+  	int totalCollisions = 0;
  	//array for storing collisions
    	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
     double outputArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
   	//array for storing keys
   	double keyArray[COL] = {0};
+  	
   	//get the keys
   	input_key(keyArray);
+	
 	//inputs from text files
-  //Allocate an array for the blocks from two columns at a time
+  	//Allocate an array for the blocks from two columns at a time
  	double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
  	double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
-  //Use a column as a pivot around which to find collisions with all other columns
-  	for(int i = 0;i<ROW-1;i++){
-   //generate blocks array for this first column
+
+ 	//parallel region stuff
+ 	//if needed
+ 	omp_set_num_threads(NUM_THREADS);
+ 	int nthreads;
+  	
+  	//Use a column as a pivot around which to find collisions with all other columns
+  	for(int i = 0; i < ROW-1; i++){
+   		//generate blocks array for this first column
     	parse_data(firstBlockArray,i, keyArray);
 
-	    for(int j = ROW-1;j>i;j--){
-	       //generate second block matrix and compare
-	      parse_data(checkBlockArray,j,keyArray);
-		    collisions(firstBlockArray,checkBlockArray,collisionArray,i,j);
+    #pragma omp parallel
+    {
+    	int id, nthrds;
 
+    	id = omp_get_thread_num();
+    	nthrds = omp_get_num_threads();
 
-        for(int k = 0; k<COLLISIONARRAYSIZE;k++){
-        if(collisionArray[k][0]==0){break;}
-        outputArray[totalCollisions][0] = collisionArray[k][0];
-        outputArray[totalCollisions][1] = collisionArray[k][1];
-        outputArray[totalCollisions][2] = collisionArray[k][2];
-        outputArray[totalCollisions][3] = collisionArray[k][3];
-        outputArray[totalCollisions][4] = collisionArray[k][4];
-        }
-        totalCollisions++;
+    	if(id == 0){
+    		nthreads = nthrds;
+    	}
 
-        clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,checkBlockArray);
-        clear_array(COLLISIONARRAYSIZE,1+BLOCKSIZE,collisionArray);
+	    for(int j = (ROW-1) - id; j > i; j = j - nthreads){
+	    	//generate second block matrix and compare
+	      	parse_data(checkBlockArray,j,keyArray);
+		  	collisions(firstBlockArray,checkBlockArray,collisionArray,i,j);
+
+		  	#pragma omp critical
+		        for(int k = 0; k < COLLISIONARRAYSIZE; k++){
+			        if(collisionArray[k][0] == 0){break;}
+			        outputArray[totalCollisions][0] = collisionArray[k][0];
+			        outputArray[totalCollisions][1] = collisionArray[k][1];
+			        outputArray[totalCollisions][2] = collisionArray[k][2];
+			        outputArray[totalCollisions][3] = collisionArray[k][3];
+			        outputArray[totalCollisions][4] = collisionArray[k][4];
+		        }
+		        totalCollisions++;
+
+		        clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,checkBlockArray);
+		        clear_array(COLLISIONARRAYSIZE,1+BLOCKSIZE,collisionArray);
 	    }
-    clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,firstBlockArray);
 	}
 
- 
+    clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,firstBlockArray);
+	}
 
 	//get time of day at end of execution
 	gettimeofday(&end, NULL);
