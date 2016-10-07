@@ -9,7 +9,7 @@
 //number of rows in a block
 #define BLOCKSIZE 4
 //size of array holding each columns blocks
-#define BLOCKARRAYSIZE 10000
+#define BLOCKARRAYSIZE 1000
 //column length in data.txt
 #define COL 4400
 //size of matrix holding collisions
@@ -30,7 +30,7 @@
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 89 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 92
+#define ROW 250
 
 
 //read comma sperated values from text file and store the [colNumber]'th number in each line an array
@@ -329,7 +329,7 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 		//check how big this hood is
 		while(nArray[i][j] !=0 && j < NEIGHBOURHOODSIZE){j++;}
 		//if bad neighboorhood (last neighboorhood and size less than 3) ignore it
-		if(j<BLOCKSIZE){break;}
+		if(j < BLOCKSIZE){break;}
 		//extract key and column info and put into smaller array
 		double a[j][2];
 		for(int k = 0; k < (j); k++){
@@ -487,7 +487,7 @@ int main() {
    		printf("column = %d\n", i);
     	parse_data(firstBlockArray,i, keyArray);
 
-    /*#pragma omp parallel private(checkBlockArray)
+    #pragma omp parallel private(checkBlockArray)
     {
     	int id, nthrds;
 
@@ -496,14 +496,21 @@ int main() {
 
     	if(id == 0){
     		nthreads = nthrds;
-    	}*/
+    	}
 
-	    for(int j = (ROW-1) /*- id*/; j > i; j-- /*nthreads*/){
+	    for(int j = (ROW-1) - id; j > i; j = j - nthreads){
 	    	//generate second block matrix and compare
 	      	parse_data(checkBlockArray,j,keyArray);
+
+	      	/*if(j = 90){
+	      		for(int y = 0; y < BLOCKARRAYSIZE; y++) {
+	      			printf("block 90[%d] = %f\n", y, checkBlockArray[y][0]);
+	      		}
+	      	}*/
+
 		  	collisions(firstBlockArray,checkBlockArray,collisionArray,i,j);
 
-		  	//#pragma omp critical
+		  	#pragma omp critical
 		        for(int k = 0; k < COLLISIONARRAYSIZE; k++){
 			        if(collisionArray[k][0] == 0){break;}
 			        outputArray[totalCollisions][0] = collisionArray[k][0];
@@ -517,7 +524,7 @@ int main() {
 		        clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,checkBlockArray);
 		        clear_array(COLLISIONARRAYSIZE,1+BLOCKSIZE,collisionArray);
 	    }
-	//}
+	}
 
     clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,firstBlockArray);
 	}
