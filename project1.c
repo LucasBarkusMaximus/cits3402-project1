@@ -9,7 +9,7 @@
 //number of rows in a block
 #define BLOCKSIZE 4
 //size of array holding each columns blocks
-#define BLOCKARRAYSIZE 1000
+#define BLOCKARRAYSIZE 5000
 //column length in data.txt
 #define COL 4400
 //size of matrix holding collisions
@@ -23,14 +23,14 @@
 //max number of neighbourhoods in a given column
 #define NEIGHBOURHOODNUMBER 1000
 //max size of neighbourhood in given column
-#define NEIGHBOURHOODSIZE 200
+#define NEIGHBOURHOODSIZE 25
 //optimal number of threads
 #define NUM_THREADS 4
 //amount of columns read into program to compute collisions
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 89 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 250
+#define ROW 91
 
 
 //read comma sperated values from text file and store the [colNumber]'th number in each line an array
@@ -247,7 +247,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			if(neighbourhood<NEIGHBOURHOODNUMBER-1){
 				neighbourhood++;
 			}else{
-        		//printf("not enough hoods\n");
+        		printf("not enough hoods\n");
         		break;
       		}	
 		}	
@@ -351,6 +351,7 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 		//printf("new block set\n");
 	  	//store the blocks that have been generated
 	    for (int k = 0; k < t; k++) {
+        if(block>=BLOCKARRAYSIZE){printf("Not enough space in block array\n");break;}
 	        for(int l = 0;l<(1+BLOCKSIZE);l++){
 
 	           	bArray[block][l] = c[k][l];
@@ -430,7 +431,7 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 
 	      	//if signatures match
 	      	if(a == bArr[j][0]) {
-	      		printf("collision = %d\n", collisionTicker);
+	      		//printf("collision = %d\n", collisionTicker);
 	      		//fill collision matrix with signature and rows (block info)
 	        	for(int k = 0; k <= BLOCKSIZE; k++) {
 	          		collisions[collisionTicker][k] = aArr[i][k];
