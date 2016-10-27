@@ -24,7 +24,7 @@
 #define NEIGHBOURHOODNUMBER 1000
 //max size of neighbourhood in given column
 #define NEIGHBOURHOODSIZE 25
-//optimal number of threads
+//optimal number of threads - to be commented out if used on a computer with more threads
 #define NUM_THREADS 4
 //amount of columns read into program to compute collisions
 //NB. max is 499
@@ -35,43 +35,44 @@
 
 //read comma sperated values from text file and store the [colNumber]'th number in each line an array
 void input_data(float arr[COL][2], int colNumber){
-  //open and read file
-  FILE *f;
+  	//open and read file
+  	FILE *f;
 	int j = 0;
 	char str[DATACHARS];
 	f = fopen("data.txt", "r");
-  //while reading a line
+  	//while reading a line
 	while(fgets(str, DATACHARS, f)!=NULL){
 		//seperate on commas
 		const char s[2] = ",";
-   	char *token;
+   		char *token;
 		token = strtok(str, s);\
 		int i = 0;
 		//while not at the end of the line yet, add to array
-   	while( token != NULL ) {
-  	 	//store value at position
-  	 	if(i == colNumber){
-      	arr[j][0] = atof(token);
-      	arr[j][1] = (float)j;
-      	j++;
-    	break;
-    	}else{i++;}
-    	 token = strtok(NULL, s);
+   		while( token != NULL ) {
+  	 		//store value at position
+  	 		if(i == colNumber){
+      		arr[j][0] = atof(token);
+      		arr[j][1] = (float)j;
+      		j++;
+    		break;
+    		} else {
+    			i++;
+    		}
+    	 	token = strtok(NULL, s);
    		}
 	}
-	fclose(f);
-	
+	fclose(f);	
 }
 
 //read keys from file. Keys are seperateed by whitespace and are sequential
 void input_key(double arr[COL]){
-  //open and read
-  FILE *f;
+  	//open and read
+  	FILE *f;
 	char str[KEYCHARS];
 	f = fopen("keys.txt", "r");
-  //while there are lines to read
+  	//while there are lines to read
 	if(fgets(str, KEYCHARS, f)!=NULL){
-	 //split on space
+	 	//split on space
 		const char s[2] = " ";
    		char *token;
 		token = strtok(str, s);
@@ -201,14 +202,11 @@ int compareDouble(const void *a, const void *b) {
 } 
 
 void clear_array(size_t x, size_t y, double array[x][y]){
-  for(int i = 0; i<x; i++){
-    for(int j = 0;j<y; j++){
-      
-      array[i][j] = (double) 0;
-      
-    }
-  }
-
+  	for(int i = 0; i<x; i++){
+    	for(int j = 0;j<y; j++){      
+      		array[i][j] = (double) 0;
+    	}
+  	}
 }
 
 double findKey(int loc, double kyArr[COL]){
@@ -226,22 +224,23 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 	for(int i = 0;i<(COL-BLOCKSIZE); i++){
 		//start flag is the first elemenet of a potential new neighborhood
 		sFlag = i;
+		
 		//if there is a block sized overlap between the last neighborhood and this new one, shift the start of the new neighborhood up so that there is no overlap
 		if((eFlag-sFlag)>=BLOCKSIZE){
 			i = eFlag-BLOCKSIZE+1;
 		}
+		
 		//this element (i) starts a neighbourhood
 		nArr[neighbourhood][0] = findKey(cArr[i][1],kyArr);
 		rArr[neighbourhood][0] = cArr[i][1];
 		//element to be checked for entry into current neighborhood. (the next element after i)
 		int j = i+1;
     	//"distance" between the vlaues in the first element of the neighborhood and the current one
-		float dist  = (cArr[j][0]-cArr[i][0]);
+		float dist = (cArr[j][0]-cArr[i][0]);
 
 		//if the new element is within dist, add it to the hood and check the next one etc.
 		while(dist<=DIA){
-      	//record the value's key and rowID
-			
+      		//record the value's key and rowID			
 			double key = findKey(cArr[j][1], kyArr);
 			nArr[neighbourhood][j-i] = key;
 		
@@ -249,19 +248,21 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			
 			j++;
       		//if there is space in the array, set the next distance, otherwise stop
-			if(j-i < street){
-			dist  = (cArr[j][0]-cArr[i][0]);
-			}else{
+			if(j-i < street) {
+				dist = (cArr[j][0]-cArr[i][0]);
+			} else {
 				break;
 			}
 		}
+		
 		//set end flag as the element after the last element in the old hood
 		eFlag = j;
+		
 		//if this hood is too small to contain blocks, recycle its index in the array
 		if(!nArr[neighbourhood][BLOCKSIZE-1] == 0){
 			if(neighbourhood<NEIGHBOURHOODNUMBER-1){
 				neighbourhood++;
-			}else{
+			} else {
         		
         		break;
       		}	
@@ -288,6 +289,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
 	int j = 1;
   	int i, x, y, z, p[N+2], b[N];
   	double c[BLOCKSIZE*2] = {0};
+    
     //Generate the first block (rightmost)
   	for(int k = 0; k < M; k++){
   		c[k]=a[N-M+k][0];
@@ -298,8 +300,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
   	}
   	signature = 0;
 
-  	for(i = 0; i < BLOCKSIZE; i++){
-  		
+  	for(i = 0; i < BLOCKSIZE; i++){  		
       	signature += c[i];
       	blockArray[0][1+i] = c[BLOCKSIZE+i];
     }
@@ -307,7 +308,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
   	blockArray[0][0] = signature;
    	
    	//only one combination required? then return
-  	if(N==1){return;}
+  	if(N == 1){return;}
 	
 	//generate all other other combinations
  	inittwiddle(M, N, p);
@@ -338,9 +339,9 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
     int i = 0;
     int block = 0;
     //find blocks in the next hood if there are any hoods left
- 	while(nArray[i][0] != 0 && i < NEIGHBOURHOODNUMBER){
-	
+ 	while(nArray[i][0] != 0 && i < NEIGHBOURHOODNUMBER){	
 		int j = 0;
+		
 		//check how big this hood is
 		while(nArray[i][j] !=0 && j < NEIGHBOURHOODSIZE){j++;}
 		//if bad neighboorhood (last neighboorhood and size less than 3) ignore it
@@ -362,20 +363,16 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 		
 	  	//store the blocks that have been generated
 	    for (int k = 0; k < t; k++) {
-        if(block>=BLOCKARRAYSIZE){break;}
+        	if(block>=BLOCKARRAYSIZE){break;}
 	        for(int l = 0;l<(1+BLOCKSIZE);l++){
 
 	           	bArray[block][l] = c[k][l];
 	            
 	        }
 	            //If a slot in the block array has been filled, fill the next index along with the next value and so on
-	            
 	          	block++;
-
-	    }
-	    
-	    i++;
-	   
+	    }	    
+	    i++;	   
     }
     //sort the completed block arrray from lowest to highest signature
     qsort(bArray, BLOCKARRAYSIZE, sizeof(*bArray), compareDouble);
@@ -391,6 +388,7 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
   	double neighbArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE] = {0};
     //helper array for neighbor array containing row information
   	double rowArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE] = {0};
+    
     //sort the column
     qsort(colArray, COL, sizeof(*colArray), compareFloat);
     //generate all hoods for this column
@@ -426,12 +424,11 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 	      	if(a == bArr[j][0]) {
 	      		//fill collision matrix with signature and rows (block info)
 	        	for(int k = 0; k <= BLOCKSIZE; k++) {
-	          		collisions[collisionTicker][k] = aArr[i][k];
-                
+	          		collisions[collisionTicker][k] = aArr[i][k];                
 	        	}
 	        	//increment number of collisions
 	        	collisionTicker++;
-	      		}
+	      	}
 	   	}
 	}
 
@@ -441,9 +438,7 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
     		m+1, collisions[m][0], collisions[m][1],
     		collisions[m][2], collisions[m][3], collisions[m][4],
     		i, j);
-  	}
-
-  	
+  	}  	
 }
 
 int main() {
@@ -468,11 +463,11 @@ int main() {
  	double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
 
 
-  //OPTION: mauanlly set the number of cores to utilised
+  	//OPTION: mauanlly set the number of cores to utilised
  	omp_set_num_threads(NUM_THREADS);
 
-  //OPTION: Allow the maximum number of cores to be utilised
-  //omp_set_num_threads(omp_get_num_threads());
+  	//OPTION: Allow the maximum number of cores to be utilised
+  	//omp_set_num_threads(omp_get_num_threads());
 
  	int nthreads;
   	
@@ -481,6 +476,7 @@ int main() {
    		//generate blocks array for this first column
     	parse_data(firstBlockArray,i, keyArray);
 
+    //begin parallel region
     #pragma omp parallel private(checkBlockArray)
     {
     	int id, nthrds;
@@ -492,26 +488,32 @@ int main() {
     		nthreads = nthrds;
     	}
 
+    	//for each thread make comparison columns
 	    for(int j = (ROW-1) - id; j > i; j = j - nthreads){
 	    	//generate second block matrix and compare
 	      	parse_data(checkBlockArray,j,keyArray);
 
+	      	//check if there are collisions between 2 columns
 		  	collisions(firstBlockArray,checkBlockArray,collisionArray,i,j);
 
+		  	//critical region
 		  	#pragma omp critical
 		        for(int k = 0; k < COLLISIONARRAYSIZE; k++){
 			        if(collisionArray[k][0] == 0){break;}
-              for(int l = 0; l<BLOCKARRAYSIZE+1;l++){
-			        outputArray[totalCollisions][l] = collisionArray[k][l];
-            }
+              		for(int l = 0; l<BLOCKARRAYSIZE+1;l++){
+              			//write collisions to output array
+			        	outputArray[totalCollisions][l] = collisionArray[k][l];
+            		}
 		        }
 		        totalCollisions++;
 
+		        //clear comparison array and array holding collision between the 2 columns in question
 		        clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,checkBlockArray);
 		        clear_array(COLLISIONARRAYSIZE,1+BLOCKSIZE,collisionArray);
 	    }
 	}
 
+	//clear array held in memory
     clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,firstBlockArray);
 	}
 
@@ -528,4 +530,3 @@ int main() {
 
 //NB Compile instructions
 //gcc -fopenmp -o project1 project1.c -std=c99
-
