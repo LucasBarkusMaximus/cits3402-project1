@@ -9,11 +9,11 @@
 //number of rows in a block
 #define BLOCKSIZE 4
 //size of array holding each columns blocks
-#define BLOCKARRAYSIZE 5000
+#define BLOCKARRAYSIZE 10000
 //column length in data.txt
 #define COL 4400
 //size of matrix holding collisions
-#define COLLISIONARRAYSIZE 2000
+#define COLLISIONARRAYSIZE 3000
 //size of bytes in data file
 #define DATACHARS 40000//7000
 //diff between values in a neighbourhood
@@ -30,8 +30,7 @@
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 90 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 90
-
+#define ROW 45
 
 //read comma sperated values from text file and store the [colNumber]'th number in each line an array
 void input_data(float arr[COL][2], int colNumber){
@@ -208,6 +207,18 @@ void clear_array(size_t x, size_t y, double array[x][y]){
       
     }
   }
+}
+
+void clear_parray(size_t x, double **array){
+  for(int i = 0; i<x; i++){
+      free(array[i]);
+
+      array[i] = NULL;
+  }
+  
+  free(array);
+  array = NULL;
+
 
 }
 
@@ -252,6 +263,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			if(j-i < street){
 			dist  = (cArr[j][0]-cArr[i][0]);
 			}else{
+        printf("Street too small!\n");
 				break;
 			}
 		}
@@ -262,7 +274,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			if(neighbourhood<NEIGHBOURHOODNUMBER-1){
 				neighbourhood++;
 			}else{
-        		
+        		 printf("Hood too small!\n");
         		break;
       		}	
 		}	
@@ -334,7 +346,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
 }
 
 //Find all blocks within a column and store them in an array
-void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE], double rArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE]){
+void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE], double rArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE]){
     int i = 0;
     int block = 0;
     //find blocks in the next hood if there are any hoods left
@@ -362,12 +374,16 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
 		
 	  	//store the blocks that have been generated
 	    for (int k = 0; k < t; k++) {
-        if(block>=BLOCKARRAYSIZE){break;}
+        if(block>=BLOCKARRAYSIZE){
+          printf("block too small\n");
+          break;}
 	        for(int l = 0;l<(1+BLOCKSIZE);l++){
-
+              //printf("%f   ", bArray[block][l]);
 	           	bArray[block][l] = c[k][l];
+              //printf("%f   ", bArray[block][l]);
 	            
 	        }
+           //printf("\n");
 	            //If a slot in the block array has been filled, fill the next index along with the next value and so on
 	            
 	          	block++;
@@ -379,11 +395,18 @@ void generate_blockArray(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE],double nArra
     }
     //sort the completed block arrray from lowest to highest signature
     qsort(bArray, BLOCKARRAYSIZE, sizeof(*bArray), compareDouble);
+    //printf("start of sorted region\n");
+    for(int i = 0; i< BLOCKARRAYSIZE; i++){
+      //printf("%d  %f   ",i, bArray[i][0]);
+      //printf("%f   \n", bArray[i][4]);
+
+    }
+    //printf("end of sorted region\n");
 }
 
 
 //Parse data from file into arrays and proccess into blocks
-void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double keyArray[COL]){
+void parse_data(double **bArray, int column,double keyArray[COL]){
   	float colArray[COL][2] = {0}; //an array for values and one for keys
   	//get the first column SET COLUMN HERE (change to automated after testing)
   	input_data(colArray,column);
@@ -396,39 +419,50 @@ void parse_data(double bArray[BLOCKARRAYSIZE][1+BLOCKSIZE], int column,double ke
     //generate all hoods for this column
     generate_neighborhood(NEIGHBOURHOODNUMBER,NEIGHBOURHOODSIZE, colArray, neighbArray, keyArray, rowArray);
     generate_blockArray(bArray,neighbArray,rowArray);
+    /*
+    for(int i =0; i<BLOCKARRAYSIZE;i++){
+      printf("%d  %f  %f \n", i, bArray[i][0],bArray[i][4]);
+    }
+*/
 }
 
 
 //function takes sorted ascending arrays of the blocks generated in two columns, a collision array to output collisions to, and the index of each column being compared
 //prints collisions between the two columns
-void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double collisions[COLLISIONARRAYSIZE][1+BLOCKSIZE], int i, int j){
+void collisions(double **aArr, double **bArr, double **collisions, int ii, int jj){
 	//keeps track of total number of collisions
 	int collisionTicker = 0;
 
 	//iterates over each signature in first array, starting from the highest 
-	for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
+	//for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
+  for(int i = 0; i< BLOCKARRAYSIZE; i++) {
 		//a contains signature being compared
     	double a = aArr[i][0];
-      
       	//if signature is zero, reached array space unfilled by blocks
     	if(a == 0) {
         	break;
       	}
 
       	//iterates over each signature in second (comparison) array, starting from the highest
-	    for(int j = BLOCKARRAYSIZE-1; j >= 0; j--) {
+	    //for(int j = BLOCKARRAYSIZE-1; j >= 0; j--) {
+          for(int j = 0; j< BLOCKARRAYSIZE; j++) {
 	    	//informs loop to save time by stopping comparing signatures when the first signature is higher than the comparison signature
+          //printf("j = %d\n", j);
 	      	if(a > bArr[j][0]) {
 	        	break;
 	      	}
-
 	      	//if signatures match
+          //printf("column 1 = %d : a = %f, column 2 = %d : %f\n", i, aArr[i][0],j,bArr[j][0]);
 	      	if(a == bArr[j][0]) {
 	      		//fill collision matrix with signature and rows (block info)
+           // printf("collide!\n");
 	        	for(int k = 0; k <= BLOCKSIZE; k++) {
-	          		collisions[collisionTicker][k] = aArr[i][k];
+            	 collisions[collisionTicker][k] = aArr[i][k];
+              // printf("%f\n", collisions[collisionTicker][k]);
+
                 
 	        	}
+            // printf("\n");
 	        	//increment number of collisions
 	        	collisionTicker++;
 	      		}
@@ -440,7 +474,7 @@ void collisions(double aArr[BLOCKARRAYSIZE][1+BLOCKSIZE], double bArr[BLOCKARRAY
 		printf("collision %d: sig = %.1f, rows = %.1f, %.1f, %.1f, %.1f, columns = %.1d and %.1d\n", 
     		m+1, collisions[m][0], collisions[m][1],
     		collisions[m][2], collisions[m][3], collisions[m][4],
-    		i, j);
+    		ii, jj);
   	}
 
   	
@@ -454,7 +488,6 @@ int main() {
   	
   	int totalCollisions = 0;
  	//array for storing collisions
-   	double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
     double outputArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
   	//array for storing keys
   	double keyArray[COL] = {0};
@@ -464,12 +497,12 @@ int main() {
 	
 	//inputs from text files
   	//Allocate an array for the blocks from two columns at a time
- 	double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
- 	double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
-
+ 	//double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
+ 	//double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
 
   //OPTION: mauanlly set the number of cores to utilised
  	omp_set_num_threads(NUM_THREADS);
+
 
   //OPTION: Allow the maximum number of cores to be utilised
   //omp_set_num_threads(omp_get_num_threads());
@@ -478,10 +511,17 @@ int main() {
   	
   	//Use a column as a pivot around which to find collisions with all other columns
   	for(int i = 0; i < ROW-1; i++){
+    printf("%d\n", i);
+        double **firstBlockArray = (double **)calloc(BLOCKARRAYSIZE,sizeof(double *));
+      for(int j = 0; j<BLOCKARRAYSIZE; j++){  
+      firstBlockArray[j] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
+     }
+
    		//generate blocks array for this first column
     	parse_data(firstBlockArray,i, keyArray);
 
-    #pragma omp parallel private(checkBlockArray)
+    //#pragma omp parallel private(checkBlockArray)
+    #pragma omp parallel
     {
     	int id, nthrds;
 
@@ -493,26 +533,42 @@ int main() {
     	}
 
 	    for(int j = (ROW-1) - id; j > i; j = j - nthreads){
+        //printf("%d\n",j);
+       
+     double **checkBlockArray = (double **)calloc(BLOCKARRAYSIZE,sizeof(double *));
+          for(int k = 0; k<BLOCKARRAYSIZE; k++){  
+            checkBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
+          }
+          //double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
+           double **collisionArray = (double **)calloc(COLLISIONARRAYSIZE,sizeof(double *));
+          for(int k = 0; k<COLLISIONARRAYSIZE; k++){  
+            collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
+          }
 	    	//generate second block matrix and compare
 	      	parse_data(checkBlockArray,j,keyArray);
 
 		  	collisions(firstBlockArray,checkBlockArray,collisionArray,i,j);
-
+        //printf("collisions complete\n");
+            
 		  	#pragma omp critical
+        {
 		        for(int k = 0; k < COLLISIONARRAYSIZE; k++){
 			        if(collisionArray[k][0] == 0){break;}
-              for(int l = 0; l<BLOCKARRAYSIZE+1;l++){
+              for(int l = 0; l<BLOCKSIZE+1;l++){
 			        outputArray[totalCollisions][l] = collisionArray[k][l];
             }
+             totalCollisions++;
 		        }
-		        totalCollisions++;
-
-		        clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,checkBlockArray);
-		        clear_array(COLLISIONARRAYSIZE,1+BLOCKSIZE,collisionArray);
+          
+          }
+            printf(" %d\n", j);
+            clear_parray(BLOCKARRAYSIZE,checkBlockArray);
+            clear_parray(COLLISIONARRAYSIZE,collisionArray);
 	    }
+    clear_parray(BLOCKARRAYSIZE, firstBlockArray);
+      
 	}
 
-    clear_array(BLOCKARRAYSIZE,1+BLOCKSIZE,firstBlockArray);
 	}
 
 	//get time of day at end of execution
