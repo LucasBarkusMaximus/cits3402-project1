@@ -15,7 +15,7 @@
 //size of matrix holding collisions
 #define COLLISIONARRAYSIZE 2000
 //size of bytes in data file
-#define DATACHARS 40000//7000
+#define DATACHARS 40000 //7000
 //diff between values in a neighbourhood
 #define DIA 0.000001
 //size of bytes in key file
@@ -528,5 +528,10 @@ int main() {
 }
 
 
-//NB Compile instructions
-//gcc -fopenmp -o project1 project1.c -std=c99
+/*NB Compile instructions
+gcc -fopenmp -o project1 project1.c -std=c99
+
+ssh to head node: ecm-ubl-006.uniwa.uwa.edu.au
+ssh to linux com sci computer: uggp.csse.uwa.edu.au
+
+*/
