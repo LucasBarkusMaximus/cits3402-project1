@@ -31,7 +31,7 @@
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 90 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 5
+#define ROW 2
 #define MASTER 0 /* taskid of first task */
 #define FROM_MASTER 1 /* setting a message type */
 #define FROM_WORKER 2 /* setting a message type */
@@ -564,7 +564,7 @@ int main(int argc, char *argv[]) {
         	printf("%d\n",j);
        		printf("parallel region\n");*/
 
-        for(int j = ROW-1; j > i; j++){
+        for(int j = ROW-1; j > i; j--){
      		double **fBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
 
           	for(int k = 0; k<BLOCKARRAYSIZE; k++){  
@@ -583,7 +583,7 @@ int main(int argc, char *argv[]) {
           	for(int k = 0; k<COLLISIONARRAYSIZE; k++){  
             	collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
           	}
-           	printf("arrays declared\n");
+           	printf("arrays declared, i = %d, j = %d\n", i, j);
 	    	//generate second block matrix and compare
 	      	parse_data(checkBlockArray,j,keyArray);
            	printf("check array parsed\n");
