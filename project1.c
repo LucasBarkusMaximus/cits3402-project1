@@ -25,12 +25,12 @@
 //max size of neighbourhood in given column
 #define NEIGHBOURHOODSIZE 25
 //optimal number of threads
-#define NUM_THREADS 1
+#define NUM_THREADS 2
 //amount of columns read into program to compute collisions
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 90 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 45
+#define ROW 41
 
 //read comma sperated values from text file and store the [colNumber]'th number in each line an array
 void input_data(float arr[COL][2], int colNumber){
@@ -50,8 +50,11 @@ void input_data(float arr[COL][2], int colNumber){
    	while( token != NULL ) {
   	 	//store value at position
   	 	if(i == colNumber){
+        printf("%s\n", token);
       	arr[j][0] = atof(token);
+         printf("%f\n", arr[j][0]);
       	arr[j][1] = (float)j;
+
       	j++;
     	break;
     	}else{i++;}
@@ -407,18 +410,23 @@ void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIG
 
 //Parse data from file into arrays and proccess into blocks
 void parse_data(double **bArray, int column,double keyArray[COL]){
+    printf("parse %d\n",omp_get_thread_num() );
   	float colArray[COL][2] = {0}; //an array for values and one for keys
   	//get the first column SET COLUMN HERE (change to automated after testing)
+
   	input_data(colArray,column);
+     printf("data input %d\n",omp_get_thread_num() );
     //neighborhood array
   	double neighbArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE] = {0};
     //helper array for neighbor array containing row information
   	double rowArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE] = {0};
     //sort the column
     qsort(colArray, COL, sizeof(*colArray), compareFloat);
+     printf("sorted %d\n",omp_get_thread_num() );
     //generate all hoods for this column
     generate_neighborhood(NEIGHBOURHOODNUMBER,NEIGHBOURHOODSIZE, colArray, neighbArray, keyArray, rowArray);
     generate_blockArray(bArray,neighbArray,rowArray);
+     printf("blocks %d\n",omp_get_thread_num() );
     /*
     for(int i =0; i<BLOCKARRAYSIZE;i++){
       printf("%d  %f  %f \n", i, bArray[i][0],bArray[i][4]);
@@ -430,6 +438,7 @@ void parse_data(double **bArray, int column,double keyArray[COL]){
 //function takes sorted ascending arrays of the blocks generated in two columns, a collision array to output collisions to, and the index of each column being compared
 //prints collisions between the two columns
 void collisions(double **aArr, double **bArr, double **collisions, int ii, int jj){
+   printf("collision %d  %d  %d \n",omp_get_thread_num(), ii, jj );
 	//keeps track of total number of collisions
 	int collisionTicker = 0;
 
@@ -437,7 +446,9 @@ void collisions(double **aArr, double **bArr, double **collisions, int ii, int j
 	//for(int i = BLOCKARRAYSIZE-1; i >= 0; i--) {
   for(int i = 0; i< BLOCKARRAYSIZE; i++) {
 		//a contains signature being compared
+     printf("first array check %d %d\n",omp_get_thread_num(), i );
     	double a = aArr[i][0];
+      printf("first array checked %d\n",omp_get_thread_num() );
       	//if signature is zero, reached array space unfilled by blocks
     	if(a == 0) {
         	break;
@@ -453,11 +464,16 @@ void collisions(double **aArr, double **bArr, double **collisions, int ii, int j
 	      	}
 	      	//if signatures match
           //printf("column 1 = %d : a = %f, column 2 = %d : %f\n", i, aArr[i][0],j,bArr[j][0]);
+           printf("check array check %d  %d  \n",omp_get_thread_num(),j );
 	      	if(a == bArr[j][0]) {
+            printf("check array checked %d\n",omp_get_thread_num() );
+
 	      		//fill collision matrix with signature and rows (block info)
            // printf("collide!\n");
 	        	for(int k = 0; k <= BLOCKSIZE; k++) {
-            	 collisions[collisionTicker][k] = aArr[i][k];
+                    	 collisions[collisionTicker][k] = aArr[i][k];
+                       printf("collision array changed %d\n",omp_get_thread_num() );
+
               // printf("%f\n", collisions[collisionTicker][k]);
 
                 
@@ -520,7 +536,7 @@ int main() {
 
    		//generate blocks array for this first column
     	parse_data(firstBlockArray,i, keyArray);
-
+      printf("first array parsed\n");
     //#pragma omp parallel private(checkBlockArray)
     #pragma omp parallel
     {
@@ -534,8 +550,17 @@ int main() {
     	}
 
 	    for(int j = (ROW-1) - id; j > i; j = j - nthreads){
-        //printf("%d\n",j);
-       
+        printf("%d\n",j);
+       printf("parallel region\n");
+
+     double **fBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
+          for(int k = 0; k<BLOCKARRAYSIZE; k++){  
+            fBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
+            for(int l =0;l<(1+BLOCKSIZE);l++){
+              fBlockArray[k][l] = firstBlockArray[k][l];
+            }
+          }
+      
      double **checkBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
           for(int k = 0; k<BLOCKARRAYSIZE; k++){  
             checkBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
@@ -545,10 +570,12 @@ int main() {
           for(int k = 0; k<COLLISIONARRAYSIZE; k++){  
             collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
           }
+           printf("arrays declared\n");
 	    	//generate second block matrix and compare
 	      	parse_data(checkBlockArray,j,keyArray);
+           printf("check array parsed\n");
 
-		  	collisions(firstBlockArray,checkBlockArray,collisionArray,i,j);
+		  	collisions(fBlockArray,checkBlockArray,collisionArray,i,j);
         //printf("collisions complete\n");
             
 		  	#pragma omp critical
@@ -562,13 +589,19 @@ int main() {
 		        }
           
           }
-            printf(" %d\n", j);
+            //printf(" %d\n", j);
+          printf("free check\n");
             clear_parray(BLOCKARRAYSIZE,checkBlockArray);
+             printf("free first\n");
+            clear_parray(BLOCKARRAYSIZE,fBlockArray);
+             printf("free coll\n");
             clear_parray(COLLISIONARRAYSIZE,collisionArray);
 	    }
+    }
+       printf("free true first\n");
     clear_parray(BLOCKARRAYSIZE, firstBlockArray);
       
-	}
+	
 
 	}
 
