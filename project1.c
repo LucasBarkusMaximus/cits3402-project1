@@ -412,7 +412,7 @@ void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIG
 
 
 //Parse data from file into arrays and proccess into blocks
-void parse_data(double **bArray, int column,double keyArray[COL],float colArray[COL][2]){
+void parse_data(double **bArray,double keyArray[COL],float colArray[COL][2]){
     //printf("parse %d\n",omp_get_thread_num() );
     //printf("data input %d\n",omp_get_thread_num() );
     //neighborhood array
@@ -539,9 +539,10 @@ int main(int argc, char *argv[]) {
       	for(int j = 0; j<BLOCKARRAYSIZE; j++){  
       		firstBlockArray[j] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
      	}
-
+      float colArrayPivot[COL][2] = {0};
+      input_data(colArrayPivot,i);
    		//generate blocks array for this first column
-    	parse_data(firstBlockArray,i, keyArray);
+    	parse_data(firstBlockArray, keyArray, colArrayPivot);
       	printf("first array parsed\n");
 
     //#pragma omp parallel private(checkBlockArray)
@@ -586,10 +587,10 @@ int main(int argc, char *argv[]) {
           	}
         
 
-       input_data(colArray,column);
+       input_data(colArray,j);
 
 	    	//generate second block matrix and compare
-	      	parse_data(checkBlockArray,j,keyArray, colArray);
+	      	parse_data(checkBlockArray,keyArray, colArray);
            	printf("check array parsed\n");
 
 		  	collisions(fBlockArray,checkBlockArray,collisionArray,i,j);
