@@ -412,12 +412,8 @@ void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIG
 
 
 //Parse data from file into arrays and proccess into blocks
-void parse_data(double **bArray, int column,double keyArray[COL]){
+void parse_data(double **bArray, int column,double keyArray[COL],float colArray[COL][2]){
     //printf("parse %d\n",omp_get_thread_num() );
-  	float colArray[COL][2] = {0}; //an array for values and one for keys
-  	//get the first column SET COLUMN HERE (change to automated after testing)
-
-  	input_data(colArray,column);
     //printf("data input %d\n",omp_get_thread_num() );
     //neighborhood array
   	double neighbArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE] = {0};
@@ -565,6 +561,11 @@ int main(int argc, char *argv[]) {
        		printf("parallel region\n");*/
 
         for(int j = ROW-1; j > i; j--){
+
+          float colArray[COL][2] = {0}; //an array for values and one for keys
+       //get the first column SET COLUMN HERE (change to automated after testing)
+
+
      		double **fBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
 
           	for(int k = 0; k<BLOCKARRAYSIZE; k++){  
@@ -583,9 +584,12 @@ int main(int argc, char *argv[]) {
           	for(int k = 0; k<COLLISIONARRAYSIZE; k++){  
             	collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
           	}
-           	printf("arrays declared, i = %d, j = %d\n", i, j);
+        
+
+       input_data(colArray,column);
+
 	    	//generate second block matrix and compare
-	      	parse_data(checkBlockArray,j,keyArray);
+	      	parse_data(checkBlockArray,j,keyArray, colArray);
            	printf("check array parsed\n");
 
 		  	collisions(fBlockArray,checkBlockArray,collisionArray,i,j);
