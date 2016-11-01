@@ -25,7 +25,7 @@
 //max size of neighbourhood in given column
 #define NEIGHBOURHOODSIZE 25
 //optimal number of threads
-#define NUM_THREADS 4
+#define NUM_THREADS 1
 //amount of columns read into program to compute collisions
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
@@ -481,6 +481,7 @@ void collisions(double **aArr, double **bArr, double **collisions, int ii, int j
 }
 
 int main() {
+  printf("MEME\n");
 	//struct to contain time values at start and end of execution
  	struct timeval start, end;
  	//get time at start of execution
@@ -512,7 +513,7 @@ int main() {
   	//Use a column as a pivot around which to find collisions with all other columns
   	for(int i = 0; i < ROW-1; i++){
     printf("%d\n", i);
-        double **firstBlockArray = (double **)calloc(BLOCKARRAYSIZE,sizeof(double *));
+        double **firstBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
       for(int j = 0; j<BLOCKARRAYSIZE; j++){  
       firstBlockArray[j] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
      }
@@ -535,12 +536,12 @@ int main() {
 	    for(int j = (ROW-1) - id; j > i; j = j - nthreads){
         //printf("%d\n",j);
        
-     double **checkBlockArray = (double **)calloc(BLOCKARRAYSIZE,sizeof(double *));
+     double **checkBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
           for(int k = 0; k<BLOCKARRAYSIZE; k++){  
             checkBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
           }
           //double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
-           double **collisionArray = (double **)calloc(COLLISIONARRAYSIZE,sizeof(double *));
+           double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
           for(int k = 0; k<COLLISIONARRAYSIZE; k++){  
             collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
           }
