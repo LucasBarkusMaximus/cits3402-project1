@@ -571,28 +571,10 @@ int main(int argc, char *argv[]) {
 	        	printf("%d\n",j);
 	       		printf("parallel region\n");*/
 
-	        for(int j = ROW-1; j > i; j--){
-
-	          	float colArray[COL][2] = {0}; //an array for values and one for keys
-	       		//get the first column SET COLUMN HERE (change to automated after testing)
+	       // for(int j = ROW-1; j > i; j = j - numworkers){
 
 
-	     		//double **fBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
-
-	          	/*for(int k = 0; k<BLOCKARRAYSIZE; k++){  
-	            	fBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
-	            	for(int l =0;l<(1+BLOCKSIZE);l++){
-	              		fBlockArray[k][l] = firstBlockArray[k][l];
-	            	}
-	          	}*/
-	     
-	          	//double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
-	           	double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
-	          	for(int k = 0; k<COLLISIONARRAYSIZE; k++){  
-	            	collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
-	          	} //change this scope	        
-
-	       		input_data(colArray,j);
+	          	
 
 	       		/*SEND & REC
 					colArray
@@ -602,18 +584,52 @@ int main(int argc, char *argv[]) {
 	       		*/
 
 				//send every column to worker tasks
-				for(int m = 0; m <= ROW; m = m + numworkers) { //fix this to work with an offset asa well
+				//for(int m = 0; m <= ROW; m = m + numworkers) { //fix this to work with an offset asa well
 					//send to worker tasks
+          int checkColumn  = ROW-1;
+
 					mtype = FROM_MASTER;
+          while(checkColumn > i){
 					for(dest = 1; dest < numworkers; dest++) {
+
+            if(checkColumn>i){
+              int j = checkColumn;
+              checkColumn--;
+            }else{
+              break;
+            }
+
+            float colArray[COL][2] = {0}; //an array for values and one for keys
+            //get the first column SET COLUMN HERE (change to automated after testing)
+
+
+          //double **fBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
+
+              /*for(int k = 0; k<BLOCKARRAYSIZE; k++){  
+                fBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
+                for(int l =0;l<(1+BLOCKSIZE);l++){
+                    fBlockArray[k][l] = firstBlockArray[k][l];
+                }
+              }*/
+       
+              //double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
+              double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
+              for(int k = 0; k<COLLISIONARRAYSIZE; k++){  
+                collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
+              } //change this scope         
+
+            input_data(colArray,j);
+
+
 						printf("sending tasks to dest %d\n", dest);
 						MPI_Send(&keyArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
 						MPI_Send(&firstArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
 						MPI_Send(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
 							MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
 						MPI_Send(&colArray[0], COL, MPI_FLOAT, dest, mtype, MPI_COMM_WORLD);
-					}
-
+					 }
+          }
+          
 					//receive from wokrer tasks
 					mtype = FROM_WORKER;
 					for(int p = 1; p <= numworkers; p++) {
