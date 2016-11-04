@@ -508,8 +508,19 @@ int main(int argc, char *argv[]) {
 		numworkers,  	//worker tasks available
 		mtype,			//message type
 		source,			//taskid of source
-		dest = 0;		//taskid of destination 
+		dest = 0;		//taskid of destination
+	int i, j, k; 
 	double start_time, end_time;	//MPI section timing
+
+	double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
+ 	//array for storing collisions
+	double outputArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
+	//array for storing keys
+	double keyArray[COL] = {0};
+	double **firstBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
+	float colArray[COL][2] = {0}; //an array for values and one for keys
+	int totalCollisions = 0;
+
   	
   	//get MPI status
 	MPI_Status status;
@@ -522,11 +533,11 @@ int main(int argc, char *argv[]) {
 	numworkers = taskid - 1;
 	//MASTER TASKS
 	if(taskid == MASTER) {	
-  	  	int totalCollisions = 0;
+  	  	//int totalCollisions = 0;
 	 	//array for storing collisions
-	    double outputArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
+	    //double outputArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
 	  	//array for storing keys
-	  	double keyArray[COL] = {0};
+	  	//double keyArray[COL] = {0};
 
 	  	//OPTION: manually set the number of cores to utilised
 	 	//omp_set_num_threads(NUM_THREADS);
@@ -543,10 +554,10 @@ int main(int argc, char *argv[]) {
 	 	//double checkBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
 	  	
 	  	//Use a column as a pivot around which to find collisions with all other columns
-	  	for(int i = 0; i < ROW-1; i++){
+	  	for(i = 0; i < ROW-1; i++){
 	    	printf("%d\n", i);
-	        double **firstBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
-	      	for(int j = 0; j<BLOCKARRAYSIZE; j++){  
+	        //double **firstBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
+	      	for(j = 0; j<BLOCKARRAYSIZE; j++){  
 	      		firstBlockArray[j] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
 	     	}
 	      	float colArrayPivot[COL][2] = {0};
@@ -586,59 +597,57 @@ int main(int argc, char *argv[]) {
 				//send every column to worker tasks
 				//for(int m = 0; m <= ROW; m = m + numworkers) { //fix this to work with an offset asa well
 					//send to worker tasks
-          int checkColumn  = ROW-1;
+          	int checkColumn  = ROW-1;
 
-					mtype = FROM_MASTER;
-          while(checkColumn > i){
-					for(dest = 1; dest < numworkers; dest++) {
+			mtype = FROM_MASTER;
+          	while(checkColumn > i){
+				for(dest = 1; dest < numworkers; dest++) {
 
-            if(checkColumn>i){
-              int j = checkColumn;
-              checkColumn--;
-            }else{
-              break;
-            }
+		            if(checkColumn > i){
+		              	j = checkColumn;
+		              	checkColumn--;
+		            }else{
+		              	break;
+		            }
 
-            float colArray[COL][2] = {0}; //an array for values and one for keys
-            //get the first column SET COLUMN HERE (change to automated after testing)
-
-
-          //double **fBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
-
-              /*for(int k = 0; k<BLOCKARRAYSIZE; k++){  
-                fBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
-                for(int l =0;l<(1+BLOCKSIZE);l++){
-                    fBlockArray[k][l] = firstBlockArray[k][l];
-                }
-              }*/
-       
-              //double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
-              double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
-              for(int k = 0; k<COLLISIONARRAYSIZE; k++){  
-                collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
-              } //change this scope         
-
-            input_data(colArray,j);
+		            //float colArray[COL][2] = {0}; //an array for values and one for keys
+		            //get the first column SET COLUMN HERE (change to automated after testing)
 
 
-						printf("sending tasks to dest %d\n", dest);
-						MPI_Send(&keyArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
-						MPI_Send(&firstArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
-						MPI_Send(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
-							MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
-						MPI_Send(&colArray[0], COL, MPI_FLOAT, dest, mtype, MPI_COMM_WORLD);
-					 }
-          }
-          
-					//receive from wokrer tasks
-					mtype = FROM_WORKER;
-					for(int p = 1; p <= numworkers; p++) {
-						source = p;
-						MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
-							MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
-						printf("received things from task %d\n", source);
-					}
+		          	//double **fBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
+
+		              /*for(int k = 0; k<BLOCKARRAYSIZE; k++){  
+		                fBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
+		                for(int l =0;l<(1+BLOCKSIZE);l++){
+		                    fBlockArray[k][l] = firstBlockArray[k][l];
+		                }
+		              }*/
+		       
+		            //double collisionArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
+		            //double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
+		            for(k = 0; k<COLLISIONARRAYSIZE; k++){  
+		                collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
+		            } //change this scope         
+
+		            input_data(colArray,j);
+
+
+					printf("sending tasks to dest %d\n", dest);
+					MPI_Send(&keyArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+					MPI_Send(&firstBlockArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+					MPI_Send(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
+						MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+					MPI_Send(&colArray[0], COL, MPI_FLOAT, dest, mtype, MPI_COMM_WORLD);
 				}
+          	}
+          
+			//receive from wokrer tasks
+			mtype = FROM_WORKER;
+			for(int p = 1; p <= numworkers; p++) {
+				source = p;
+				MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
+					MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
+				printf("received things from task %d\n", source);
 			}
 		}
 	}
@@ -648,7 +657,7 @@ int main(int argc, char *argv[]) {
 		//RECIEVE from master
 		mtype = FROM_MASTER;
 		MPI_Recv(&keyArray[0], COL, MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
-		MPI_Recv(&firstArray[0], COL, MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
+		MPI_Recv(&firstBlockArray[0], COL, MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
 		MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
 			MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
 		MPI_Recv(&colArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), MPI_DOUBLE, source, 
