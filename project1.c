@@ -31,7 +31,7 @@
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 90 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 20
+#define ROW 10
 #define MASTER 0 /* taskid of first task */
 #define FROM_MASTER 1 /* setting a message type */
 #define FROM_WORKER 2 /* setting a message type */
@@ -242,7 +242,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 
 	//for each element in the column
 	for(int i = 0;i<(COL-BLOCKSIZE); i++){
-		printf("cArr[%d][0] = %f\n", i, cArr[i][0]);
+		//printf("cArr[%d][0] = %f\n", i, cArr[i][0]);
 		//start flag is the first elemenet of a potential new neighborhood
 		sFlag = i;
 		//if there is a block sized overlap between the last neighborhood and this new one, shift the start of the new neighborhood up so that there is no overlap
@@ -272,7 +272,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			if(j-i < street){
 				dist  = (cArr[j][0]-cArr[i][0]);
 			}else{
-        		printf("Street too small!, i = %d, j = %d\n, cArr[i] = %f, cArr[j] = %f", i, j, cArr[i][0], cArr[j][0]);
+        		//printf("Street too small!, i = %d, j = %d\n, cArr[i] = %f, cArr[j] = %f", i, j, cArr[i][0], cArr[j][0]);
 				break;
 			}
 		}
@@ -283,7 +283,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			if(neighbourhood<NEIGHBOURHOODNUMBER-1){
 				neighbourhood++;
 			}else{
-        		 printf("Hood too small!\n");
+        		printf("Hood too small!\n");
         		break;
       		}	
 		}	
@@ -291,7 +291,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 }
 	
 //calculate a recursive factorial, for calcualting some N choose R
-/*unsigned long long*/ int fac(unsigned long long int n ){
+/*unsigned long long*/ int fac(/*unsigned long long*/ int n ){
 	if (n >= 1)
         return n*fac(n-1);
     else
@@ -391,7 +391,7 @@ void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIG
 	  	//store the blocks that have been generated
 	    for (int k = 0; k < t; k++) {
         if(block >= BLOCKARRAYSIZE){
-          printf("block too small\n");
+          //printf("block too small\n");
           break;}
 	        for(int l = 0;l<(1+BLOCKSIZE);l++){
               //printf("%f   ", bArray[block][l]);
@@ -431,16 +431,18 @@ void parse_data(double **bArray,double keyArray[COL],float colArray[COL][2]){
   	double rowArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE] = {0};
     //sort the column
     qsort(colArray, COL, sizeof(*colArray), compareFloat);
+    /*for(int i = 0; i<BLOCKARRAYSIZE;i++){
+      	printf("%d  %f  %f \n", i, colArray[i][0],colArray[i][1]);
+    }*/
     //printf("sorted %d\n",omp_get_thread_num() );
     //generate all hoods for this column
     generate_neighborhood(NEIGHBOURHOODNUMBER,NEIGHBOURHOODSIZE, colArray, neighbArray, keyArray, rowArray);
     generate_blockArray(bArray,neighbArray,rowArray);
     //printf("blocks %d\n",omp_get_thread_num() );
-    /*
+    
     for(int i =0; i<BLOCKARRAYSIZE;i++){
-      printf("%d  %f  %f \n", i, bArray[i][0],bArray[i][4]);
+      	//printf("%d  %f  %f \n", i, bArray[i][0],bArray[i][4]);
     }
-*/
 }
 
 
@@ -503,7 +505,6 @@ void collisions(double **aArr, double **bArr, double **collisions){
 }
 
 int main(int argc, char *argv[]) {
-  	printf("MEME\n");
 	//struct to contain time values at start and end of execution
  	struct timeval start, end;
  	//get time at start of execution
@@ -541,6 +542,7 @@ int main(int argc, char *argv[]) {
 	
 	//MASTER TASKS
 	if(taskid == MASTER) {
+		printf("numworkers = %d\n", numworkers);
 		int i, j, k, l, z;	//tickers 	
 	 	//array for storing collisions
 	    //double outputArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
@@ -554,8 +556,9 @@ int main(int argc, char *argv[]) {
 	  	//omp_set_num_threads(omp_get_num_threads());
 	  	
 	  	//get the keys
+	  	printf("b4 alicia keys\n");
 	  	input_key(keyArray);
-		
+		printf("after alicia keys\n");
 		//inputs from text files
 	  	//Allocate an array for the blocks from two columns at a time
 	 	//double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
@@ -563,7 +566,7 @@ int main(int argc, char *argv[]) {
 	  	
 	  	//Use a column as a pivot around which to find collisions with all other columns
 	  	for(i = 0; i < ROW-1; i++){
-	    	printf("%d\n", i);
+	    	printf("pivot = %d\n", i);
 	        //double **firstBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
 	      	for(j = 0; j<BLOCKARRAYSIZE; j++){  
 	      		firstBlockArray[j] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
@@ -572,7 +575,7 @@ int main(int argc, char *argv[]) {
 	      	input_data(colArrayPivot,i);
 	   		//generate blocks array for this first column
 	    	parse_data(firstBlockArray, keyArray, colArrayPivot);
-	      	printf("first array parsed\n");
+	      	//printf("first array parsed\n");
 
 	    //#pragma omp parallel private(checkBlockArray)
 	    //#pragma omp parallel
@@ -595,13 +598,13 @@ int main(int argc, char *argv[]) {
 				//send every column to worker tasks
 				//for(int m = 0; m <= ROW; m = m + numworkers) { //fix this to work with an offset asa well
 					//send to worker tasks
-          	int checkColumn  = ROW-1;
+          	int checkColumn = ROW-1;
           	//printf("checkColumn = %d\n", checkColumn);
-
+			
 			mtype = FROM_MASTER;
           	while(checkColumn > i){
-          		printf("i = %d\n", i);
-          		printf("numworkers = %d\n", numworkers);
+          		//printf("i = %d\n", i); 
+          		//Send to worker tasks         		
 				for(dest = 1; dest < numworkers; dest++) {
 					printf("dest = %d\n", dest);
 		            if(checkColumn > i){
@@ -629,7 +632,7 @@ int main(int argc, char *argv[]) {
 		            //double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
 		            for(k = 0; k<COLLISIONARRAYSIZE; k++){  
 		                collisionArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
-		            } //change this scope         
+		            }         
 
 		            input_data(colArray,j);
 
@@ -641,34 +644,43 @@ int main(int argc, char *argv[]) {
 						MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);*/
 					MPI_Send(&colArray[0], COL, MPI_FLOAT, dest, mtype, MPI_COMM_WORLD);
 				}
+          	//}//old
 
-				
-          	}
-          
-			//receive from worker tasks
-			mtype = FROM_WORKER;
-			for(int p = 1; p <= numworkers; p++) {
-				source = p;
-				MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
-					MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
-				//MPI_Recv(&collisionTicker, 1, MPI_INT, source, mtype, MPI_COMM_WORLD, &status);
-				printf("received things from task %d\n", source);
-			}
+				//receive from worker tasks
+				printf("receiving things\n");
+				mtype = FROM_WORKER;
+				for(int p = 1; p <= numworkers; p++) {
+					source = p;
+					printf("pre-receive\n");
+					MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
+						MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
+					//MPI_Recv(&collisionTicker, 1, MPI_INT, source, mtype, MPI_COMM_WORLD, &status);
+					printf("received things from task %d\n", source);
+			        
+			        for(z = 0; z < COLLISIONARRAYSIZE; z++){
+			        	if(collisionArray[z][0] == 0){break;}
+	          			for(l = 0; l<BLOCKSIZE+1;l++){
+			        		outputArray[totalCollisions][l] = collisionArray[z][l];
+	        			}
+	         			totalCollisions++;
+		        	}  //mpi_reduce?
+				}
+				printf("finished receiving\n");       
 
-	        for(z = 0; z < COLLISIONARRAYSIZE; z++){
-		        if(collisionArray[z][0] == 0){break;}
-          		for(l = 0; l<BLOCKSIZE+1;l++){
-		        	outputArray[totalCollisions][l] = collisionArray[z][l];
-        		}
-         		totalCollisions++;
-	        }  //output array needs to be chucked in master and mpi_reduced        
+	        	//printf(" %d\n", j);
+	        	//printf("free first\n");
+	        	//clear_parray(BLOCKARRAYSIZE,fBlockArray);
 
-        	//printf(" %d\n", j);
-        	//printf("free first\n");
-        	//clear_parray(BLOCKARRAYSIZE,fBlockArray);
+				printf("free true first\n");
+				clear_parray(BLOCKARRAYSIZE, firstBlockArray);	
+			}//new
+		}
 
-			printf("free true first\n");
-			clear_parray(BLOCKARRAYSIZE, firstBlockArray);	
+		printf("Collisions:\n");
+		for(int a = 0; a < totalCollisions; a++){
+			printf("sig = %f, rows = %f %f % f %f\n", 
+				outputArray[a][0], outputArray[a][1], outputArray[a][2], outputArray[a][3],
+				outputArray[a][4]);
 		}
 
 		printf("total collisions = %d\n", totalCollisions);
@@ -699,9 +711,13 @@ int main(int argc, char *argv[]) {
         	checkBlockArray[k] = (double *)calloc(1+BLOCKSIZE,sizeof(double));
       	}
 
+      	/*for(int y = 0; y > COL; y++){
+      		printf("colArray[%d][0] = %f", y, colArray[y][0]);
+      	}*/
+
     	//generate second block matrix and compare
       	parse_data(checkBlockArray,keyArray, colArray);
-       	printf("check array parsed\n");
+       	//printf("check array parsed\n");
 
 	  	collisions(firstBlockArray,checkBlockArray,collisionArray); //was fBlockArray
     	//printf("collisions complete\n");
@@ -712,12 +728,11 @@ int main(int argc, char *argv[]) {
 			MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD);
 	  	//MPI_Send(&collisionTicker, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD);
 
-      	printf("free check\n");
+      	//printf("free check\n");
         clear_parray(BLOCKARRAYSIZE,checkBlockArray);
 
-        printf("free coll\n");
-        clear_parray(COLLISIONARRAYSIZE,collisionArray);
-        
+        //printf("free coll\n");
+        clear_parray(COLLISIONARRAYSIZE,collisionArray);        
     }
 
 	MPI_Finalize();
@@ -733,4 +748,5 @@ ssh to cluster: ecm-ubl-006.uniwa.uwa.edu.au
 mpirun -np 2 --hostfile host project1 
 mpirun --hostfile host project1
 mpirun project1
+qsub runSch.sh
 */
