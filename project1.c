@@ -1,6 +1,6 @@
 #include <mpi.h>
 #include <sys/time.h>
-//#include <omp.h>
+#include <omp.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +31,7 @@
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 90 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 10
+#define ROW 200
 #define MASTER 0 /* taskid of first task */
 #define FROM_MASTER 1 /* setting a message type */
 #define FROM_WORKER 2 /* setting a message type */
@@ -259,7 +259,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 		float dist  = (cArr[j][0]-cArr[i][0]);
 
 		//if the new element is within dist, add it to the hood and check the next one etc.
-		while(dist<=DIA){
+		while(dist<=DIA && cArr[j][0] >= DIA){
       	//record the value's key and rowID
 			
 			double key = findKey(cArr[j][1], kyArr);
@@ -292,11 +292,23 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 	
 //calculate a recursive factorial, for calcualting some N choose R
 /*unsigned long long*/ int fac(/*unsigned long long*/ int n ){
-	if (n >= 1)
+	if (n > 1)
         return n*fac(n-1);
     else
         return 1;
 }
+
+/*long int fac2(long int n) {
+	int x = 0;
+	if(n < 1){
+		return 1;
+	}else{
+		for(int i = 1; i <= n; i++) {
+			x = x * i;
+		}
+	}
+	return x;
+}*/
 
 //find all block combinations within a given neighborhood
 void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLOCKSIZE+1]){
@@ -373,8 +385,8 @@ void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIG
 			a[k][0] = nArray[i][k];
 			a[k][1] = rArray[i][k];
 		}
-		
-		if(j >= BLOCKSIZE) {
+		printf("fac(BLOCKSIZE) = %d, fac(j) = %d\n", fac(BLOCKSIZE), fac(j));
+		if((fac(BLOCKSIZE)*fac((j) - BLOCKSIZE)) != 0) {
 			//check number of blocks possible
 			t = fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
 		}else{
@@ -440,9 +452,9 @@ void parse_data(double **bArray,double keyArray[COL],float colArray[COL][2]){
     generate_blockArray(bArray,neighbArray,rowArray);
     //printf("blocks %d\n",omp_get_thread_num() );
     
-    for(int i =0; i<BLOCKARRAYSIZE;i++){
-      	//printf("%d  %f  %f \n", i, bArray[i][0],bArray[i][4]);
-    }
+    /*for(int i =0; i<BLOCKARRAYSIZE;i++){
+      	printf("%d  %f  %f \n", i, bArray[i][0],bArray[i][4]);
+    }*/
 }
 
 
@@ -510,7 +522,7 @@ int main(int argc, char *argv[]) {
  	//get time at start of execution
  	gettimeofday(&start, NULL);
 
- 	//int nthreads; 
+ 	int nthreads; 
 	int numtasks,		//numer of tasks
 		taskid, 		//task identifier
 		//world_size, 	//number of processors
@@ -553,12 +565,9 @@ int main(int argc, char *argv[]) {
 	 	//omp_set_num_threads(NUM_THREADS);
 
 	  	//OPTION: Allow the maximum number of cores to be utilised
-	  	//omp_set_num_threads(omp_get_num_threads());
+	  	omp_set_num_threads(omp_get_num_threads());
 	  	
-	  	//get the keys
-	  	printf("b4 alicia keys\n");
 	  	input_key(keyArray);
-		printf("after alicia keys\n");
 		//inputs from text files
 	  	//Allocate an array for the blocks from two columns at a time
 	 	//double firstBlockArray[BLOCKARRAYSIZE][1+BLOCKSIZE] = {0};
@@ -578,8 +587,8 @@ int main(int argc, char *argv[]) {
 	      	//printf("first array parsed\n");
 
 	    //#pragma omp parallel private(checkBlockArray)
-	    //#pragma omp parallel
-	    /*{
+	    #pragma omp parallel
+	    {
 	    	int id, nthrds;
 
 	    	id = omp_get_thread_num();
@@ -589,7 +598,7 @@ int main(int argc, char *argv[]) {
 	    		nthreads = nthrds;
 	    	}
 
-		    for(int j = (ROW-1) - id; j > i; j = j - nthreads){
+		    /*for(int j = (ROW-1) - id; j > i; j = j - nthreads){
 	        	printf("%d\n",j);
 	       		printf("parallel region\n");*/
 
@@ -598,17 +607,18 @@ int main(int argc, char *argv[]) {
 				//send every column to worker tasks
 				//for(int m = 0; m <= ROW; m = m + numworkers) { //fix this to work with an offset asa well
 					//send to worker tasks
-          	int checkColumn = ROW-1;
-          	//printf("checkColumn = %d\n", checkColumn);
-			
+          	
+          	//each thread send one unique checkcolumn
+          	int checkColumn = ROW - 1 - id;          			
+          	
 			mtype = FROM_MASTER;
           	while(checkColumn > i){
           		//printf("i = %d\n", i); 
           		//Send to worker tasks         		
-				for(dest = 1; dest < numworkers; dest++) {
+				for(dest = 1 + id; dest < numworkers; dest = dest + nthreads) {
 					printf("dest = %d\n", dest);
 		            if(checkColumn > i){
-		            	printf("checkColumn = %d\n", checkColumn);
+		            	//printf("checkColumn = %d\n", checkColumn);
 		              	j = checkColumn;
 		              	checkColumn--;
 		            }else{
@@ -636,7 +646,6 @@ int main(int argc, char *argv[]) {
 
 		            input_data(colArray,j);
 
-
 					printf("sending tasks to dest %d\n", dest);
 					MPI_Send(&keyArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
 					MPI_Send(&firstBlockArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
@@ -645,7 +654,6 @@ int main(int argc, char *argv[]) {
 					MPI_Send(&colArray[0], COL, MPI_FLOAT, dest, mtype, MPI_COMM_WORLD);
 				}
           	//}//old
-
 				//receive from worker tasks
 				printf("receiving things\n");
 				mtype = FROM_WORKER;
@@ -675,6 +683,7 @@ int main(int argc, char *argv[]) {
 				clear_parray(BLOCKARRAYSIZE, firstBlockArray);	
 			}//new
 		}
+		}	
 
 		printf("Collisions:\n");
 		for(int a = 0; a < totalCollisions; a++){
@@ -714,13 +723,13 @@ int main(int argc, char *argv[]) {
       	/*for(int y = 0; y > COL; y++){
       		printf("colArray[%d][0] = %f", y, colArray[y][0]);
       	}*/
-
+      	printf("b4 parse, taskid = %d\n", taskid);
     	//generate second block matrix and compare
       	parse_data(checkBlockArray,keyArray, colArray);
        	//printf("check array parsed\n");
-
+      	printf("after parse b4 coll, taskid = %d\n", taskid);
 	  	collisions(firstBlockArray,checkBlockArray,collisionArray); //was fBlockArray
-    	//printf("collisions complete\n");
+    	printf("collisions complete, taskid = %d\n", taskid);
 
 	  	//SEND to master
 	  	mtype = FROM_WORKER;
