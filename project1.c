@@ -31,7 +31,7 @@
 //NB. max is 499
 //NB. row 499 seems impossible to read in, even by itself
 //NB. 90 was the max we could get to work on our machines so program would execute and didn't throw the time value to a number with an error in it
-#define ROW 2
+#define ROW 20
 #define MASTER 0 /* taskid of first task */
 #define FROM_MASTER 1 /* setting a message type */
 #define FROM_WORKER 2 /* setting a message type */
@@ -239,8 +239,11 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 	int eFlag = 1;
   	//start at neighborhood 0
 	int neighbourhood = 0;
+
 	//for each element in the column
 	for(int i = 0;i<(COL-BLOCKSIZE); i++){
+
+		printf("cArr[%d][0] = %f\n", i, cArr[i][0]);
 		//start flag is the first elemenet of a potential new neighborhood
 		sFlag = i;
 		//if there is a block sized overlap between the last neighborhood and this new one, shift the start of the new neighborhood up so that there is no overlap
@@ -267,7 +270,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			j++;
       		//if there is space in the array, set the next distance, otherwise stop
 			if(j-i < street){
-			dist  = (cArr[j][0]-cArr[i][0]);
+				dist  = (cArr[j][0]-cArr[i][0]);
 			}else{
         		printf("Street too small!\n");
 				break;
@@ -288,7 +291,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 }
 	
 //calculate a recursive factorial, for calcualting some N choose R
-unsigned long long int fac(unsigned long long int n ){
+/*unsigned long long*/ int fac(unsigned long long int n ){
 	if (n >= 1)
         return n*fac(n-1);
     else
@@ -355,6 +358,7 @@ void generate_blocks(size_t N,size_t t, double a[N][2], double blockArray[t][BLO
 void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE], double rArray[NEIGHBOURHOODNUMBER][NEIGHBOURHOODSIZE]){
     int i = 0;
     int block = 0;
+    /*unsigned long long*/ int t;
     //find blocks in the next hood if there are any hoods left
  	while(nArray[i][0] != 0 && i < NEIGHBOURHOODNUMBER){
 	
@@ -365,13 +369,19 @@ void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIG
 		if(j < BLOCKSIZE){break;}
 		//extract key and column info and put into smaller array
 		double a[j][2];
-		for(int k = 0; k < (j); k++){
+		for(int k = 0; k < j; k++){
 			a[k][0] = nArray[i][k];
 			a[k][1] = rArray[i][k];
 		}
 		
-		//check number of blocks possible
-		unsigned long long int t = fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
+		if(j >= BLOCKSIZE) {
+			//check number of blocks possible
+			t = fac(j)/(fac(BLOCKSIZE)*fac((j) - BLOCKSIZE));
+		}else{
+			printf("street empty\n");
+			break;
+		}
+
 		//create array that blocks will be stored in. Format: everything doubles [sig,row1,row2,row3,row4]x number of blocks
 		double c[t][BLOCKSIZE+1];
 		//generate the blocks for this neighborhood
@@ -380,7 +390,7 @@ void generate_blockArray(double **bArray,double nArray[NEIGHBOURHOODNUMBER][NEIG
 		
 	  	//store the blocks that have been generated
 	    for (int k = 0; k < t; k++) {
-        if(block>=BLOCKARRAYSIZE){
+        if(block >= BLOCKARRAYSIZE){
           printf("block too small\n");
           break;}
 	        for(int l = 0;l<(1+BLOCKSIZE);l++){
@@ -503,13 +513,13 @@ int main(int argc, char *argv[]) {
  	//int nthreads; 
 	int numtasks,		//numer of tasks
 		taskid, 		//task identifier
-		world_size, 	//number of processors
+		//world_size, 	//number of processors
 		name_len,		//
 		numworkers,  	//worker tasks available
 		mtype,			//message type
 		source,			//taskid of source
 		dest = 0;		//taskid of destination
-	int i, j, k; 
+	int i, j, k;		//tickers 
 	double start_time, end_time;	//MPI section timing
 
 	double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
@@ -528,9 +538,10 @@ int main(int argc, char *argv[]) {
 	MPI_Init(&argc, &argv);
 	//start_time = MPI_Wtime();	//initialise start time
 	MPI_Comm_rank(MPI_COMM_WORLD, &taskid); 	//which node is used
-	MPI_Comm_size(MPI_COMM_WORLD, &world_size);	//total num of nodes 
+	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);	//total num of nodes 
 
-	numworkers = taskid - 1;
+	numworkers = numtasks - 1;
+	
 	//MASTER TASKS
 	if(taskid == MASTER) {	
   	  	//int totalCollisions = 0;
@@ -584,26 +595,20 @@ int main(int argc, char *argv[]) {
 
 	       // for(int j = ROW-1; j > i; j = j - numworkers){
 
-
-	          	
-
-	       		/*SEND & REC
-					colArray
-					firstBlockArray
-					collisionArray
-					keyArray
-	       		*/
-
 				//send every column to worker tasks
 				//for(int m = 0; m <= ROW; m = m + numworkers) { //fix this to work with an offset asa well
 					//send to worker tasks
           	int checkColumn  = ROW-1;
+          	//printf("checkColumn = %d\n", checkColumn);
 
 			mtype = FROM_MASTER;
           	while(checkColumn > i){
+          		printf("i = %d\n", i);
+          		printf("numworkers = %d\n", numworkers);
 				for(dest = 1; dest < numworkers; dest++) {
-
+					printf("dest = %d\n", dest);
 		            if(checkColumn > i){
+		            	printf("checkColumn = %d\n", checkColumn);
 		              	j = checkColumn;
 		              	checkColumn--;
 		            }else{
@@ -635,13 +640,13 @@ int main(int argc, char *argv[]) {
 					printf("sending tasks to dest %d\n", dest);
 					MPI_Send(&keyArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
 					MPI_Send(&firstBlockArray[0], COL, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
-					MPI_Send(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
-						MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+					/*MPI_Send(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
+						MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);*/
 					MPI_Send(&colArray[0], COL, MPI_FLOAT, dest, mtype, MPI_COMM_WORLD);
 				}
           	}
           
-			//receive from wokrer tasks
+			//receive from worker tasks
 			mtype = FROM_WORKER;
 			for(int p = 1; p <= numworkers; p++) {
 				source = p;
@@ -649,6 +654,22 @@ int main(int argc, char *argv[]) {
 					MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
 				printf("received things from task %d\n", source);
 			}
+
+	        for(int k = 0; k < COLLISIONARRAYSIZE; k++){
+		        if(collisionArray[k][0] == 0){break;}
+          		for(int l = 0; l<BLOCKSIZE+1;l++){
+		        	outputArray[totalCollisions][l] = collisionArray[k][l];
+        		}
+         		totalCollisions++;
+	        }  //output array needs to be chucked in master and mpi_reduced        
+
+        	//printf(" %d\n", j);
+        	printf("free first\n");
+        	//clear_parray(BLOCKARRAYSIZE,fBlockArray);
+
+			printf("free true first\n");
+			clear_parray(BLOCKARRAYSIZE, firstBlockArray);	
+			//}
 		}
 	}
 
@@ -658,10 +679,11 @@ int main(int argc, char *argv[]) {
 		mtype = FROM_MASTER;
 		MPI_Recv(&keyArray[0], COL, MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
 		MPI_Recv(&firstBlockArray[0], COL, MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
-		MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
-			MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
+		/*MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
+			MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);*/
 		MPI_Recv(&colArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), MPI_DOUBLE, source, 
 			mtype, MPI_COMM_WORLD, &status);
+		printf("task %d recieves\n", taskid);
 
  		double **checkBlockArray = (double **)malloc(BLOCKARRAYSIZE*sizeof(double *));
       	for(int k = 0; k<BLOCKARRAYSIZE; k++){  
@@ -687,28 +709,7 @@ int main(int argc, char *argv[]) {
         clear_parray(COLLISIONARRAYSIZE,collisionArray);
         
     }
-    	//SHIFT TO MASTER
-	  	//#pragma omp critical
-    	//{
-	        for(int k = 0; k < COLLISIONARRAYSIZE; k++){
-		        if(collisionArray[k][0] == 0){break;}
-          		for(int l = 0; l<BLOCKSIZE+1;l++){
-		        	outputArray[totalCollisions][l] = collisionArray[k][l];
-        		}
-         		totalCollisions++;
-	        }  //output array needs to be chucked in master and mpi_reduced        
-      	//}
-        //printf(" %d\n", j);
-        printf("free first\n");
-        //clear_parray(BLOCKARRAYSIZE,fBlockArray);
 
-
-    	//}
-	//}
-	printf("free true first\n");
-	clear_parray(BLOCKARRAYSIZE, firstBlockArray);	
-	//END SHIFT TO MASTER
-	//}
 	MPI_Finalize();
 	//get time of day at end of execution
 	gettimeofday(&end, NULL);
