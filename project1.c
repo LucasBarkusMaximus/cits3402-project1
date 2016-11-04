@@ -242,7 +242,6 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 
 	//for each element in the column
 	for(int i = 0;i<(COL-BLOCKSIZE); i++){
-
 		printf("cArr[%d][0] = %f\n", i, cArr[i][0]);
 		//start flag is the first elemenet of a potential new neighborhood
 		sFlag = i;
@@ -252,6 +251,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 		}
 		//this element (i) starts a neighbourhood
 		nArr[neighbourhood][0] = findKey(cArr[i][1],kyArr);
+		//printf("neighbourhood = %d, nArr = %f\n", neighbourhood, nArr[neighbourhood][0]);
 		rArr[neighbourhood][0] = cArr[i][1];
 		//element to be checked for entry into current neighborhood. (the next element after i)
 		int j = i+1;
@@ -272,7 +272,7 @@ void generate_neighborhood(size_t suburb, size_t street,float cArr[COL][2],doubl
 			if(j-i < street){
 				dist  = (cArr[j][0]-cArr[i][0]);
 			}else{
-        		printf("Street too small!\n");
+        		printf("Street too small!, i = %d, j = %d\n, cArr[i] = %f, cArr[j] = %f", i, j, cArr[i][0], cArr[j][0]);
 				break;
 			}
 		}
@@ -446,7 +446,7 @@ void parse_data(double **bArray,double keyArray[COL],float colArray[COL][2]){
 
 //function takes sorted ascending arrays of the blocks generated in two columns, a collision array to output collisions to, and the index of each column being compared
 //prints collisions between the two columns
-void collisions(double **aArr, double **bArr, double **collisions, int ii, int jj){
+void collisions(double **aArr, double **bArr, double **collisions){
    	//printf("collision %d  %d  %d \n",omp_get_thread_num(), ii, jj );
 	//keeps track of total number of collisions
 	int collisionTicker = 0;
@@ -496,10 +496,9 @@ void collisions(double **aArr, double **bArr, double **collisions, int ii, int j
 
 	//print all blocks that collide and the columns theyre found in
   	for(int m = 0; m < collisionTicker; m++) {
-		printf("collision %d: sig = %.1f, rows = %.1f, %.1f, %.1f, %.1f, columns = %.1d and %.1d\n", 
+		printf("collision %d: sig = %.1f, rows = %.1f, %.1f, %.1f, %.1f\n", 
     		m+1, collisions[m][0], collisions[m][1],
-    		collisions[m][2], collisions[m][3], collisions[m][4],
-    		ii, jj);
+    		collisions[m][2], collisions[m][3], collisions[m][4]);
   	}  	
 }
 
@@ -518,8 +517,7 @@ int main(int argc, char *argv[]) {
 		numworkers,  	//worker tasks available
 		mtype,			//message type
 		source,			//taskid of source
-		dest = 0;		//taskid of destination
-	int i, j, k;		//tickers 
+		dest;		//taskid of destination
 	double start_time, end_time;	//MPI section timing
 
 	double **collisionArray = (double **)malloc(COLLISIONARRAYSIZE*sizeof(double *));
@@ -531,7 +529,6 @@ int main(int argc, char *argv[]) {
 	float colArray[COL][2] = {0}; //an array for values and one for keys
 	int totalCollisions = 0;
 
-  	
   	//get MPI status
 	MPI_Status status;
 
@@ -543,8 +540,8 @@ int main(int argc, char *argv[]) {
 	numworkers = numtasks - 1;
 	
 	//MASTER TASKS
-	if(taskid == MASTER) {	
-  	  	//int totalCollisions = 0;
+	if(taskid == MASTER) {
+		int i, j, k, l, z;	//tickers 	
 	 	//array for storing collisions
 	    //double outputArray[COLLISIONARRAYSIZE][1+BLOCKSIZE] = {0};
 	  	//array for storing keys
@@ -644,6 +641,8 @@ int main(int argc, char *argv[]) {
 						MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);*/
 					MPI_Send(&colArray[0], COL, MPI_FLOAT, dest, mtype, MPI_COMM_WORLD);
 				}
+
+				
           	}
           
 			//receive from worker tasks
@@ -652,36 +651,46 @@ int main(int argc, char *argv[]) {
 				source = p;
 				MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
 					MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
+				//MPI_Recv(&collisionTicker, 1, MPI_INT, source, mtype, MPI_COMM_WORLD, &status);
 				printf("received things from task %d\n", source);
 			}
 
-	        for(int k = 0; k < COLLISIONARRAYSIZE; k++){
-		        if(collisionArray[k][0] == 0){break;}
-          		for(int l = 0; l<BLOCKSIZE+1;l++){
-		        	outputArray[totalCollisions][l] = collisionArray[k][l];
+	        for(z = 0; z < COLLISIONARRAYSIZE; z++){
+		        if(collisionArray[z][0] == 0){break;}
+          		for(l = 0; l<BLOCKSIZE+1;l++){
+		        	outputArray[totalCollisions][l] = collisionArray[z][l];
         		}
          		totalCollisions++;
 	        }  //output array needs to be chucked in master and mpi_reduced        
 
         	//printf(" %d\n", j);
-        	printf("free first\n");
+        	//printf("free first\n");
         	//clear_parray(BLOCKARRAYSIZE,fBlockArray);
 
 			printf("free true first\n");
 			clear_parray(BLOCKARRAYSIZE, firstBlockArray);	
-			//}
 		}
+
+		printf("total collisions = %d\n", totalCollisions);
+		//get time of day at end of execution
+		gettimeofday(&end, NULL);
+		//compute time taken in seconds
+	  	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
+	  		 end.tv_usec - start.tv_usec) / 1.e6;
+
+	  	//print time program took to execute
+	  	printf("time = %5.10f seconds\n", delta);
 	}
 
 	//WORKER_TASKS
 	if(taskid > MASTER) {
 		//RECIEVE from master
 		mtype = FROM_MASTER;
-		MPI_Recv(&keyArray[0], COL, MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
-		MPI_Recv(&firstBlockArray[0], COL, MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
+		MPI_Recv(&keyArray[0], COL, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
+		MPI_Recv(&firstBlockArray[0], COL, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
 		/*MPI_Recv(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
 			MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);*/
-		MPI_Recv(&colArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), MPI_DOUBLE, source, 
+		MPI_Recv(&colArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), MPI_DOUBLE, MASTER, 
 			mtype, MPI_COMM_WORLD, &status);
 		printf("task %d recieves\n", taskid);
 
@@ -694,13 +703,14 @@ int main(int argc, char *argv[]) {
       	parse_data(checkBlockArray,keyArray, colArray);
        	printf("check array parsed\n");
 
-	  	collisions(firstBlockArray,checkBlockArray,collisionArray,i,j); //was f
+	  	collisions(firstBlockArray,checkBlockArray,collisionArray); //was fBlockArray
     	//printf("collisions complete\n");
 
 	  	//SEND to master
 	  	mtype = FROM_WORKER;
 	  	MPI_Send(&collisionArray[0], COLLISIONARRAYSIZE*(1+BLOCKSIZE), 
-			MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+			MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD);
+	  	//MPI_Send(&collisionTicker, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD);
 
       	printf("free check\n");
         clear_parray(BLOCKARRAYSIZE,checkBlockArray);
@@ -711,14 +721,7 @@ int main(int argc, char *argv[]) {
     }
 
 	MPI_Finalize();
-	//get time of day at end of execution
-	gettimeofday(&end, NULL);
-	//compute time taken in seconds
-  	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u +
-  		 end.tv_usec - start.tv_usec) / 1.e6;
 
-  	//print time program took to execute
-  	printf("time = %5.10f seconds\n", delta);
 }
 
 
